@@ -1,34 +1,120 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* App-specific styles */
+
+/* Page transitions */
+.page-enter {
+  opacity: 0;
+  transform: translateY(10px);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+/* Rubric selector styles */
+.rubric-option {
+  @apply relative flex flex-col items-center justify-center p-4 rounded-xl border-2 border-slate-200 bg-white cursor-pointer transition-all duration-200;
 }
 
-.App-link {
-    color: #61dafb;
+.rubric-option:hover {
+  @apply border-lime-300 bg-lime-50/30;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.rubric-option.selected {
+  @apply border-lime-600 bg-lime-50 shadow-sm;
 }
+
+.rubric-option .score-badge {
+  @apply w-10 h-10 rounded-full flex items-center justify-center text-lg font-semibold mb-2;
+}
+
+.rubric-option:not(.selected) .score-badge {
+  @apply bg-slate-100 text-slate-600;
+}
+
+.rubric-option.selected .score-badge {
+  @apply bg-lime-600 text-white;
+}
+
+/* Progress indicator */
+.progress-ring {
+  transform: rotate(-90deg);
+}
+
+.progress-ring circle {
+  transition: stroke-dashoffset 0.35s;
+  transform-origin: 50% 50%;
+}
+
+/* Chart container */
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Delta chip styles */
+.delta-chip {
+  @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium;
+}
+
+.delta-chip.positive {
+  @apply bg-emerald-100 text-emerald-700;
+}
+
+.delta-chip.negative {
+  @apply bg-rose-100 text-rose-700;
+}
+
+.delta-chip.neutral {
+  @apply bg-slate-100 text-slate-600;
+}
+
+/* Sidebar navigation */
+.nav-item {
+  @apply flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 transition-all duration-200;
+}
+
+.nav-item:hover {
+  @apply bg-slate-100 text-slate-900;
+}
+
+.nav-item.active {
+  @apply bg-lime-50 text-lime-700 font-medium;
+}
+
+/* Table row hover */
+.table-row-hover {
+  @apply transition-colors duration-150;
+}
+
+.table-row-hover:hover {
+  @apply bg-slate-50;
+}
+
+/* Tooltip styles */
+.info-tooltip {
+  @apply absolute z-50 px-3 py-2 text-sm bg-slate-900 text-white rounded-lg shadow-lg max-w-xs;
+}
+
+/* Loading skeleton */
+.skeleton {
+  @apply animate-pulse bg-slate-200 rounded;
+}
+
+/* Card hover effects */
+.card-interactive {
+  @apply transition-all duration-200 cursor-pointer;
+}
+
+.card-interactive:hover {
+  @apply shadow-md border-lime-200 -translate-y-0.5;
+}
+
+/* Badge variants */
+.badge-foundational { @apply bg-slate-100 text-slate-700 border-slate-200; }
+.badge-developing { @apply bg-amber-50 text-amber-700 border-amber-200; }
+.badge-performing { @apply bg-lime-50 text-lime-700 border-lime-200; }
+.badge-leading { @apply bg-emerald-50 text-emerald-700 border-emerald-200; }
+.badge-elite { @apply bg-lime-600 text-white border-lime-700; }
