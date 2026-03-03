@@ -1,0 +1,167 @@
+{
+  "identity": {
+    "persona": "E1",
+    "mission": "Create a 'Modern Consultant' aesthetic that is authoritative yet energetic. Break away from the 'boring corporate' while avoiding 'flashy startup' vibes.",
+    "anti_patterns": [
+      "No purple or teal gradients.",
+      "No 'Inter' font for headings.",
+      "No symmetrical, boring grids.",
+      "No pure black (#000000) or pure gray (#808080).",
+      "No generic 'Bootstrap' column layouts."
+    ]
+  },
+  "typography": {
+    "font_family": {
+      "heading": "Outfit, sans-serif",
+      "body": "Plus Jakarta Sans, sans-serif",
+      "mono": "JetBrains Mono, monospace"
+    },
+    "cdn_links": [
+      "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    ],
+    "scale": {
+      "h1": "text-4xl md:text-5xl font-bold tracking-tight",
+      "h2": "text-3xl font-semibold tracking-tight",
+      "h3": "text-2xl font-semibold",
+      "body": "text-base leading-relaxed text-slate-600",
+      "small": "text-sm text-slate-500"
+    },
+    "rules": "Headings must be 'Outfit'. Body must be 'Plus Jakarta Sans'. Use tight tracking for headings."
+  },
+  "colors": {
+    "theme_mode": "light",
+    "palette": {
+      "primary": {
+        "DEFAULT": "#4d7c0f",
+        "light": "#84cc16",
+        "dark": "#365314",
+        "foreground": "#ffffff"
+      },
+      "secondary": {
+        "DEFAULT": "#f1f5f9",
+        "foreground": "#0f172a"
+      },
+      "accent": {
+        "DEFAULT": "#ecfccb",
+        "foreground": "#365314"
+      },
+      "background": "#f8fafc",
+      "foreground": "#0f172a",
+      "muted": {
+        "DEFAULT": "#f8fafc",
+        "foreground": "#64748b"
+      },
+      "card": {
+        "DEFAULT": "rgba(255, 255, 255, 0.8)",
+        "foreground": "#0f172a"
+      },
+      "border": "#e2e8f0"
+    },
+    "chart_colors": {
+      "radar_fill": "rgba(132, 204, 22, 0.2)",
+      "radar_stroke": "#84cc16",
+      "radar_point": "#ffffff",
+      "radar_point_border": "#4d7c0f",
+      "heatmap_low": "#ecfccb",
+      "heatmap_medium": "#bef264",
+      "heatmap_high": "#65a30d"
+    },
+    "semantic": {
+      "success": "#22c55e",
+      "warning": "#eab308",
+      "error": "#ef4444",
+      "info": "#3b82f6"
+    }
+  },
+  "layout_strategy": {
+    "spacing": {
+      "container_padding": "p-6 md:p-12",
+      "section_gap": "gap-8 md:gap-12",
+      "component_gap": "gap-4"
+    },
+    "grid_system": {
+      "dashboard": "grid grid-cols-1 md:grid-cols-12 gap-6",
+      "sidebar_width": "w-64",
+      "bento_hero": "grid grid-cols-1 md:grid-cols-12 gap-4 auto-rows-[minmax(180px,auto)]"
+    },
+    "glassmorphism": "bg-white/70 backdrop-blur-md border border-slate-200/60 shadow-sm"
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-lime-600 hover:bg-lime-700 text-white shadow-md transition-all duration-200 ease-out hover:shadow-lg rounded-md px-6 py-2.5 font-medium",
+      "secondary": "bg-white hover:bg-slate-50 text-slate-900 border border-slate-200 shadow-sm transition-all duration-200 rounded-md px-6 py-2.5 font-medium",
+      "ghost": "hover:bg-lime-50 text-lime-700 hover:text-lime-800 transition-colors rounded-md px-4 py-2"
+    },
+    "cards": {
+      "base": "bg-white rounded-xl border border-slate-100 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] overflow-hidden",
+      "glass": "bg-white/80 backdrop-blur-md border border-white/20 shadow-sm rounded-xl",
+      "interactive": "hover:border-lime-300 hover:shadow-md transition-all cursor-pointer bg-white rounded-xl border border-slate-100 p-6"
+    },
+    "inputs": {
+      "base": "flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+    },
+    "rubric_selector": {
+      "container": "grid grid-cols-1 md:grid-cols-5 gap-3",
+      "item": "border border-slate-200 rounded-lg p-4 cursor-pointer hover:border-lime-400 hover:bg-lime-50/50 transition-all",
+      "item_active": "border-lime-600 bg-lime-50 ring-1 ring-lime-600 shadow-sm"
+    }
+  },
+  "assets": {
+    "images": {
+      "landing_hero": "https://images.unsplash.com/photo-1765366417030-16d9765d920a?q=85&w=1920&auto=format&fit=crop",
+      "auth_bg": "https://images.unsplash.com/photo-1692133226337-55e513450a32?q=85&w=1920&auto=format&fit=crop",
+      "flow_step_1": "https://images.unsplash.com/photo-1694590000075-8ece6e2a2fc5?q=85&w=800&auto=format&fit=crop",
+      "flow_step_2": "https://images.unsplash.com/photo-1761577680751-0f3e25c7a8bd?q=85&w=800&auto=format&fit=crop",
+      "flow_step_3": "https://images.unsplash.com/photo-1692889783742-7d99b124c402?q=85&w=800&auto=format&fit=crop",
+      "avatar_male": "https://images.unsplash.com/photo-1677594333719-c5eb422bbdc9?q=85&w=200&auto=format&fit=crop",
+      "avatar_female": "https://images.unsplash.com/photo-1650784854945-264d5b0b6b07?q=85&w=200&auto=format&fit=crop",
+      "team_group": "https://images.unsplash.com/photo-1676694047732-768cea5b66eb?q=85&w=1200&auto=format&fit=crop"
+    },
+    "icons_library": "lucide-react"
+  },
+  "charts": {
+    "library": "chart.js",
+    "react_wrapper": "react-chartjs-2",
+    "defaults": {
+      "responsive": true,
+      "maintainAspectRatio": false,
+      "plugins": {
+        "legend": {
+          "position": "bottom",
+          "labels": {
+            "font": { "family": "'Plus Jakarta Sans', sans-serif" },
+            "usePointStyle": true
+          }
+        }
+      }
+    }
+  },
+  "accessibility": {
+    "rules": [
+      "Ensure text-to-background contrast ratio of at least 4.5:1.",
+      "Use 'data-testid' on all interactive elements.",
+      "Never use color alone to convey meaning (add icons or text labels).",
+      "Focus states must be clearly visible (ring-2 ring-lime-500)."
+    ]
+  },
+  "instructions_to_main_agent": [
+    "Install 'chart.js' and 'react-chartjs-2'.",
+    "Add the Google Fonts link to 'public/index.html'.",
+    "Update 'tailwind.config.js' with the custom colors and fonts.",
+    "Use 'lucide-react' for all icons.",
+    "Implement the 'Rubric Selector' as a custom component, not just radio buttons.",
+    "For the Executive Dashboard, use the 'Bento' grid layout.",
+    "Ensure the 'Lime' accent is used sparingly (approx 10% of UI) to maintain the 'Consulting Polish'.",
+    "All API calls should be mocked for the demo, but structured to easily swap for real endpoints."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Don't make generic centered layouts.",
+    "Create depth through layered design elements.",
+    "Use glass-morphism effects with backdrop filters.",
+    "Every interaction needs micro-animations.",
+    "Use 2-3x more spacing than feels comfortable.",
+    "Prioritize using pre-existing components from src/components/ui.",
+    "Components MUST use named exports.",
+    "Use 'sonner' for toasts."
+  ]
+}
