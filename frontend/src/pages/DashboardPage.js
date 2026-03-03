@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { assignmentsAPI, seedDemoData } from '@/lib/api';
+import { assignmentsAPI, seedDemoData, scorecardsAPI } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import Layout from '@/components/Layout';
+import MaturityBadge from '@/components/MaturityBadge';
 import { 
   ClipboardCheck, 
   ArrowRight, 
@@ -15,26 +16,33 @@ import {
   BarChart3,
   Users,
   Settings,
-  RefreshCw
+  RefreshCw,
+  Eye,
+  FileText
 } from 'lucide-react';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [assignments, setAssignments] = useState([]);
+  const [scorecards, setScorecards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
 
   useEffect(() => {
-    fetchAssignments();
+    fetchData();
   }, []);
 
-  const fetchAssignments = async () => {
+  const fetchData = async () => {
     try {
-      const response = await assignmentsAPI.getMy();
-      setAssignments(response.data);
+      const [assignmentsRes, scorecardsRes] = await Promise.all([
+        assignmentsAPI.getMy(),
+        scorecardsAPI.getAll().catch(() => ({ data: [] }))
+      ]);
+      setAssignments(assignmentsRes.data);
+      setScorecards(scorecardsRes.data);
     } catch (error) {
-      console.error('Failed to fetch assignments:', error);
+      console.error('Failed to fetch data:', error);
     } finally {
       setLoading(false);
     }
@@ -47,7 +55,8 @@ const DashboardPage = () => {
       toast.success('Demo data seeded successfully!', {
         description: `Created ${response.data.data.product_owners} Product Owners with assessments`
       });
-      fetchAssignments();
+      // Re-fetch data after seeding
+      fetchData();
     } catch (error) {
       toast.error('Failed to seed demo data');
     } finally {
@@ -238,7 +247,7 @@ const DashboardPage = () => {
               {completedAssignments.map((assignment) => (
                 <div
                   key={assignment.assignment_id}
-                  className="glass-card p-6 opacity-75"
+                  className="glass-card p-6"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -256,12 +265,105 @@ const DashboardPage = () => {
                         </p>
                       </div>
                     </div>
-                    <Badge className="bg-lime-100 text-lime-700">
-                      Completed
-                    </Badge>
+                    <div className="flex items-center gap-3">
+                      <Badge className="bg-lime-100 text-lime-700">
+                        Completed
+                      </Badge>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate(`/assessment/${assignment.cycle_id}/${assignment.po_id}?view=true`)}
+                        data-testid={`view-assessment-${assignment.po_id}`}
+                      >
+                        <Eye className="w-4 h-4 mr-1" />
+                        View
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* All Scorecards - For Admin/ExecViewer/Manager */}
+        {['Admin', 'ExecViewer', 'Manager'].includes(user?.role) && scorecards.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="font-heading text-xl font-semibold text-slate-900">
+                Assessment Results
+              </h2>
+              <Badge variant="secondary">
+                {scorecards.length} scorecards
+              </Badge>
+            </div>
+            <div className="glass-card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-slate-50">
+                    <tr>
+                      <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Product Owner</th>
+                      <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Team</th>
+                      <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Self Score</th>
+                      <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Partner Avg</th>
+                      <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Manager</th>
+                      <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Maturity</th>
+                      <th className="text-right px-6 py-4 text-sm font-medium text-slate-600">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {scorecards.slice(0, 10).map((sc) => (
+                      <tr key={sc.po_id} className="table-row-hover">
+                        <td className="px-6 py-4">
+                          <span className="font-medium text-slate-900">{sc.po_name}</span>
+                        </td>
+                        <td className="px-6 py-4 text-slate-600">{sc.po_team}</td>
+                        <td className="px-6 py-4">
+                          <span className="font-mono text-lime-700 font-medium">
+                            {sc.overall_self?.toFixed(1) || '—'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="font-mono text-sky-700 font-medium">
+                            {sc.overall_partner_avg?.toFixed(1) || '—'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="font-mono text-violet-700 font-medium">
+                            {sc.overall_manager?.toFixed(1) || '—'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <MaturityBadge band={sc.maturity_band} size="sm" />
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => navigate(`/scorecard/${sc.po_id}`)}
+                            data-testid={`view-scorecard-${sc.po_id}`}
+                          >
+                            <FileText className="w-4 h-4 mr-1" />
+                            Details
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {scorecards.length > 10 && (
+                <div className="p-4 border-t border-slate-100 text-center">
+                  <Button
+                    variant="ghost"
+                    onClick={() => navigate('/executive')}
+                    className="text-lime-700"
+                  >
+                    View all {scorecards.length} scorecards
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}

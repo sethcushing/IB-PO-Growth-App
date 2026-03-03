@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { dimensionsAPI, responsesAPI, cyclesAPI } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import Layout from '@/components/Layout';
 import {
@@ -14,7 +15,9 @@ import {
   Send,
   CheckCircle2,
   HelpCircle,
-  AlertCircle
+  AlertCircle,
+  Eye,
+  Edit
 } from 'lucide-react';
 import {
   Tooltip,
@@ -33,6 +36,7 @@ const rubricLabels = {
 
 const AssessmentPage = () => {
   const { cycleId, poId } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   
@@ -43,6 +47,9 @@ const AssessmentPage = () => {
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [cycle, setCycle] = useState(null);
+  const [isViewMode, setIsViewMode] = useState(searchParams.get('view') === 'true');
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [poName, setPOName] = useState('');
 
   // Determine rater type based on user role
   const getRaterType = () => {
@@ -70,15 +77,26 @@ const AssessmentPage = () => {
       setCycle(cycleRes.data);
 
       // Load existing responses if any
-      if (existingRes.data?.items) {
-        const existingResponses = {};
-        existingRes.data.items.forEach(item => {
-          existingResponses[item.question_id] = {
-            score: item.score,
-            comment: item.comment || ''
-          };
-        });
-        setResponses(existingResponses);
+      if (existingRes.data) {
+        // Handle array of responses (admin/exec view)
+        const responseData = Array.isArray(existingRes.data) 
+          ? existingRes.data.find(r => r.rater_type === raterType) 
+          : existingRes.data;
+        
+        if (responseData?.items) {
+          const existingResponses = {};
+          responseData.items.forEach(item => {
+            existingResponses[item.question_id] = {
+              score: item.score,
+              comment: item.comment || ''
+            };
+          });
+          setResponses(existingResponses);
+          setIsSubmitted(!responseData.is_draft);
+          if (!responseData.is_draft) {
+            setIsViewMode(true);
+          }
+        }
       }
     } catch (error) {
       toast.error('Failed to load assessment');
@@ -94,6 +112,7 @@ const AssessmentPage = () => {
   const progress = totalQuestions > 0 ? (answeredQuestions / totalQuestions) * 100 : 0;
 
   const handleScoreChange = (questionId, score) => {
+    if (isViewMode) return;
     setResponses(prev => ({
       ...prev,
       [questionId]: {
@@ -104,6 +123,7 @@ const AssessmentPage = () => {
   };
 
   const handleCommentChange = (questionId, comment) => {
+    if (isViewMode) return;
     setResponses(prev => ({
       ...prev,
       [questionId]: {
@@ -163,7 +183,8 @@ const AssessmentPage = () => {
       });
 
       toast.success('Assessment submitted successfully!');
-      navigate('/dashboard');
+      setIsSubmitted(true);
+      setIsViewMode(true);
     } catch (error) {
       toast.error('Failed to submit assessment');
     } finally {
@@ -175,6 +196,20 @@ const AssessmentPage = () => {
     if (raterType === 'Self') return question.text_self;
     if (raterType === 'Partner') return question.text_partner;
     return question.text_manager;
+  };
+
+  // Calculate dimension scores for view mode
+  const getDimensionScore = (dimension) => {
+    const dimQuestions = dimension.questions || [];
+    const scores = dimQuestions
+      .map(q => responses[q.id]?.score)
+      .filter(s => s != null);
+    
+    if (scores.length === 0) return null;
+    
+    const avg = scores.reduce((sum, s) => sum + s, 0) / scores.length;
+    const normalized = ((avg - 1) / 4) * 100;
+    return normalized;
   };
 
   if (loading) {
@@ -200,25 +235,41 @@ const AssessmentPage = () => {
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
           </button>
-          <Button
-            onClick={handleSave}
-            disabled={saving}
-            variant="outline"
-            className="flex items-center gap-2"
-            data-testid="save-progress-btn"
-          >
-            <Save className="w-4 h-4" />
-            {saving ? 'Saving...' : 'Save Progress'}
-          </Button>
+          {!isViewMode && (
+            <Button
+              onClick={handleSave}
+              disabled={saving}
+              variant="outline"
+              className="flex items-center gap-2"
+              data-testid="save-progress-btn"
+            >
+              <Save className="w-4 h-4" />
+              {saving ? 'Saving...' : 'Save Progress'}
+            </Button>
+          )}
+          {isViewMode && isSubmitted && (
+            <Badge className="bg-lime-100 text-lime-700">
+              <CheckCircle2 className="w-3 h-3 mr-1" />
+              Submitted
+            </Badge>
+          )}
         </div>
 
         {/* Progress Card */}
         <div className="glass-card p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="font-heading text-2xl font-bold text-slate-900">
-                {raterType} Assessment
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="font-heading text-2xl font-bold text-slate-900">
+                  {raterType} Assessment
+                </h1>
+                {isViewMode && (
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <Eye className="w-3 h-3" />
+                    View Mode
+                  </Badge>
+                )}
+              </div>
               <p className="text-slate-600">{cycle?.name}</p>
             </div>
             <div className="text-right">
@@ -239,6 +290,7 @@ const AssessmentPage = () => {
             const dimQuestions = dim.questions || [];
             const dimAnswered = dimQuestions.filter(q => responses[q.id]?.score != null).length;
             const isComplete = dimAnswered === dimQuestions.length;
+            const dimScore = isViewMode ? getDimensionScore(dim) : null;
 
             return (
               <button
@@ -253,8 +305,13 @@ const AssessmentPage = () => {
                 }`}
                 data-testid={`dimension-nav-${index}`}
               >
-                {isComplete && <CheckCircle2 className="w-3 h-3 inline mr-1" />}
-                {dim.name.split(' ')[0]}
+                <div className="flex items-center gap-2">
+                  {isComplete && <CheckCircle2 className="w-3 h-3" />}
+                  <span>{dim.name.split(' ')[0]}</span>
+                  {isViewMode && dimScore != null && (
+                    <span className="ml-1 text-xs opacity-75">({dimScore.toFixed(0)})</span>
+                  )}
+                </div>
               </button>
             );
           })}
@@ -268,9 +325,16 @@ const AssessmentPage = () => {
                 <h2 className="font-heading text-xl font-semibold text-slate-900">
                   {currentDimension.name}
                 </h2>
-                <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-sm">
-                  Weight: {currentDimension.weight}%
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-sm">
+                    Weight: {currentDimension.weight}%
+                  </span>
+                  {isViewMode && getDimensionScore(currentDimension) != null && (
+                    <span className="px-3 py-1 bg-lime-100 text-lime-700 rounded-full text-sm font-medium">
+                      Score: {getDimensionScore(currentDimension).toFixed(1)}
+                    </span>
+                  )}
+                </div>
               </div>
               <p className="text-slate-600">{currentDimension.description}</p>
             </div>
@@ -311,9 +375,10 @@ const AssessmentPage = () => {
                       <button
                         key={score}
                         onClick={() => handleScoreChange(question.id, score)}
+                        disabled={isViewMode}
                         className={`rubric-option ${
                           responses[question.id]?.score === score ? 'selected' : ''
-                        }`}
+                        } ${isViewMode ? 'cursor-default' : ''}`}
                         data-testid={`rubric-${question.id}-${score}`}
                       >
                         <div className="score-badge">{score}</div>
@@ -330,14 +395,15 @@ const AssessmentPage = () => {
                   {/* Comment Box */}
                   <div className="space-y-2">
                     <label className="text-sm text-slate-600">
-                      Evidence / Example (optional)
+                      Evidence / Example {isViewMode ? '' : '(optional)'}
                     </label>
                     <Textarea
                       value={responses[question.id]?.comment || ''}
                       onChange={(e) => handleCommentChange(question.id, e.target.value)}
-                      placeholder="Add context or examples to support your rating..."
+                      placeholder={isViewMode ? 'No comment provided' : 'Add context or examples to support your rating...'}
                       className="resize-none"
                       rows={2}
+                      disabled={isViewMode}
                       data-testid={`comment-${question.id}`}
                     />
                   </div>
@@ -368,6 +434,14 @@ const AssessmentPage = () => {
               Next
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
+          ) : isViewMode ? (
+            <Button
+              onClick={() => navigate('/dashboard')}
+              variant="outline"
+              data-testid="back-to-dashboard-btn"
+            >
+              Back to Dashboard
+            </Button>
           ) : (
             <Button
               onClick={handleSubmit}
@@ -382,11 +456,21 @@ const AssessmentPage = () => {
         </div>
 
         {/* Unanswered Warning */}
-        {answeredQuestions < totalQuestions && (
+        {!isViewMode && answeredQuestions < totalQuestions && (
           <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
             <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
             <p className="text-sm text-amber-800">
               {totalQuestions - answeredQuestions} question(s) remaining. Complete all questions before submitting.
+            </p>
+          </div>
+        )}
+
+        {/* View Mode Info */}
+        {isViewMode && (
+          <div className="flex items-center gap-3 p-4 bg-slate-50 border border-slate-200 rounded-lg">
+            <Eye className="w-5 h-5 text-slate-500 flex-shrink-0" />
+            <p className="text-sm text-slate-600">
+              You are viewing a completed assessment. Navigate through dimensions to see all responses and scores.
             </p>
           </div>
         )}
