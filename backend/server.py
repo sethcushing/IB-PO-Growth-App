@@ -763,24 +763,50 @@ async def compute_scorecard(cycle_id: str, po_id: str):
     return scorecard_dict
 
 @api_router.get("/scorecards/my")
-async def get_my_scorecard(current_user: Dict = Depends(get_current_user)):
+async def get_my_scorecard(cycle_id: Optional[str] = None, current_user: Dict = Depends(get_current_user)):
     po = await db.product_owners.find_one({"user_id": current_user['id']}, {"_id": 0})
     if not po:
         raise HTTPException(status_code=404, detail="No PO record found")
     
-    cycle = await db.assessment_cycles.find_one({"status": CycleStatus.ACTIVE.value}, {"_id": 0})
+    # If cycle_id provided, use it; otherwise try active cycle
+    if cycle_id:
+        cycle = await db.assessment_cycles.find_one({"id": cycle_id}, {"_id": 0})
+    else:
+        cycle = await db.assessment_cycles.find_one({"status": CycleStatus.ACTIVE.value}, {"_id": 0})
+        if not cycle:
+            cycle = await db.assessment_cycles.find_one({}, {"_id": 0})
+    
     if not cycle:
-        cycle = await db.assessment_cycles.find_one({}, {"_id": 0})
+        raise HTTPException(status_code=404, detail="No assessment cycle found")
     
     scorecard = await db.scorecards.find_one({
         "cycle_id": cycle['id'],
         "po_id": po['id']
     }, {"_id": 0})
     
+    # Check if scorecard has actual data (self assessment completed)
+    if scorecard and scorecard.get('overall_self') is not None:
+        return scorecard
+    
+    # If no data for active cycle, try to find historical scorecard
+    if not cycle_id:  # Only auto-fallback when not explicitly requesting a cycle
+        all_cycles = await db.assessment_cycles.find({}, {"_id": 0}).sort("start_date", -1).to_list(100)
+        for hist_cycle in all_cycles:
+            if hist_cycle['id'] == cycle['id']:
+                continue
+            hist_scorecard = await db.scorecards.find_one({
+                "cycle_id": hist_cycle['id'],
+                "po_id": po['id']
+            }, {"_id": 0})
+            if hist_scorecard and hist_scorecard.get('overall_self') is not None:
+                hist_scorecard['_fallback_from_cycle'] = hist_cycle['name']
+                return hist_scorecard
+    
+    # Return empty scorecard with indicator
     if not scorecard:
-        # Compute on demand
         scorecard = await compute_scorecard(cycle['id'], po['id'])
     
+    scorecard['_no_data'] = True
     return scorecard
 
 @api_router.get("/scorecards/{po_id}")
