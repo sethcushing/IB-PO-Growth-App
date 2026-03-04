@@ -523,6 +523,59 @@ async def get_response(cycle_id: str, po_id: str, current_user: Dict = Depends(g
     
     return response
 
+@api_router.get("/responses/{cycle_id}/{po_id}/full")
+async def get_response_full(cycle_id: str, po_id: str, rater_type: Optional[str] = None, current_user: Dict = Depends(get_current_user)):
+    """Get full response with question details for viewing"""
+    role = current_user['role']
+    user_id = current_user['id']
+    
+    # Determine which rater type to fetch
+    if rater_type:
+        target_rater_type = rater_type
+    elif role == UserRole.PRODUCT_OWNER.value:
+        target_rater_type = RaterType.SELF.value
+    elif role == UserRole.BUSINESS_PARTNER.value:
+        target_rater_type = RaterType.PARTNER.value
+    elif role == UserRole.MANAGER.value:
+        target_rater_type = RaterType.MANAGER.value
+    else:
+        target_rater_type = RaterType.SELF.value
+    
+    # Get response
+    query = {
+        "cycle_id": cycle_id,
+        "po_id": po_id,
+        "rater_type": target_rater_type
+    }
+    
+    # For non-admin users, also filter by user_id
+    if role not in [UserRole.ADMIN.value, UserRole.EXEC_VIEWER.value]:
+        query["rater_user_id"] = user_id
+    
+    response = await db.responses.find_one(query, {"_id": 0})
+    
+    if not response:
+        return None
+    
+    # Enrich with question and dimension data
+    dimensions = await db.dimensions.find({}, {"_id": 0}).sort("order", 1).to_list(100)
+    questions = await db.questions.find({"active": True}, {"_id": 0}).sort("order", 1).to_list(100)
+    
+    # Build enriched response
+    enriched_items = []
+    for item in response.get('items', []):
+        question = next((q for q in questions if q['id'] == item['question_id']), None)
+        if question:
+            dimension = next((d for d in dimensions if d['id'] == question['dimension_id']), None)
+            enriched_items.append({
+                **item,
+                "question": question,
+                "dimension": dimension
+            })
+    
+    response['enriched_items'] = enriched_items
+    return response
+
 # ============ SCORECARDS ============
 def get_maturity_band(score: float) -> MaturityBand:
     if score < 25:
@@ -1180,7 +1233,20 @@ async def seed_demo_data():
     
     questions = await db.questions.find({}, {"_id": 0}).to_list(100)
     
-    # Create assessment cycle
+    # Create assessment cycle - Q4 2024 (completed)
+    cycle_q4 = AssessmentCycle(
+        name="Q4 2024 Assessment",
+        start_date=datetime(2024, 10, 1, tzinfo=timezone.utc),
+        end_date=datetime(2024, 12, 31, tzinfo=timezone.utc),
+        status=CycleStatus.CLOSED
+    )
+    cycle_q4_dict = cycle_q4.model_dump()
+    cycle_q4_dict['start_date'] = cycle_q4_dict['start_date'].isoformat()
+    cycle_q4_dict['end_date'] = cycle_q4_dict['end_date'].isoformat()
+    cycle_q4_dict['created_at'] = cycle_q4_dict['created_at'].isoformat()
+    await db.assessment_cycles.insert_one(cycle_q4_dict)
+    
+    # Create assessment cycle - Q1 2025 (active with pending)
     cycle = AssessmentCycle(
         name="Q1 2025 Assessment",
         start_date=datetime(2025, 1, 1, tzinfo=timezone.utc),
@@ -1328,7 +1394,7 @@ async def seed_demo_data():
         "Great at building consensus."
     ]
     
-    for po in product_owners:
+    for idx, po in enumerate(product_owners):
         # Find manager for this team
         manager = next((m for m in managers if m['team'] == po['team']), managers[0])
         
@@ -1336,13 +1402,15 @@ async def seed_demo_data():
         num_partners = random.randint(2, 4)
         assigned_partners = random.sample(business_partners, num_partners)
         
-        assignment = Assignment(
-            cycle_id=cycle.id,
-            po_id=po['id'],
-            manager_user_id=manager['id'],
-            partner_user_ids=[p['id'] for p in assigned_partners]
-        )
-        await db.assignments.insert_one(assignment.model_dump())
+        # Create assignments for BOTH cycles
+        for cyc in [cycle_q4, cycle]:
+            assignment = Assignment(
+                cycle_id=cyc.id,
+                po_id=po['id'],
+                manager_user_id=manager['id'],
+                partner_user_ids=[p['id'] for p in assigned_partners]
+            )
+            await db.assignments.insert_one(assignment.model_dump())
         
         # Generate score patterns
         # Some POs over-rate themselves, some under-rate
@@ -1360,11 +1428,12 @@ async def seed_demo_data():
                     items.append({"question_id": q['id'], "score": score, "comment": comment})
             return items
         
+        # === Q4 2024 CYCLE - All completed (historical data) ===
         # Self response
         if score_pattern == 'overrate':
-            self_items = generate_scores(1)  # Higher self-rating
+            self_items = generate_scores(1)
         elif score_pattern == 'underrate':
-            self_items = generate_scores(-1)  # Lower self-rating
+            self_items = generate_scores(-1)
         elif score_pattern == 'high':
             self_items = generate_scores(1)
         elif score_pattern == 'low':
@@ -1372,45 +1441,45 @@ async def seed_demo_data():
         else:
             self_items = generate_scores(0)
         
-        self_response = {
+        self_response_q4 = {
             "id": str(uuid.uuid4()),
-            "cycle_id": cycle.id,
+            "cycle_id": cycle_q4.id,
             "po_id": po['id'],
             "rater_user_id": po['user']['id'],
             "rater_type": RaterType.SELF.value,
             "items": self_items,
             "completion_pct": 100,
             "is_draft": False,
-            "submitted_at": datetime.now(timezone.utc).isoformat()
+            "submitted_at": datetime(2024, 12, 15, tzinfo=timezone.utc).isoformat()
         }
-        await db.responses.insert_one(self_response)
+        await db.responses.insert_one(self_response_q4)
         
-        # Partner responses
+        # Partner responses for Q4
         for partner in assigned_partners:
-            if random.random() < 0.15:  # 15% incomplete
+            if random.random() < 0.1:
                 continue
             
             if score_pattern == 'overrate':
-                partner_items = generate_scores(-1)  # Partners rate lower
+                partner_items = generate_scores(-1)
             elif score_pattern == 'underrate':
-                partner_items = generate_scores(1)  # Partners rate higher
+                partner_items = generate_scores(1)
             else:
                 partner_items = generate_scores(0)
             
-            partner_response = {
+            partner_response_q4 = {
                 "id": str(uuid.uuid4()),
-                "cycle_id": cycle.id,
+                "cycle_id": cycle_q4.id,
                 "po_id": po['id'],
                 "rater_user_id": partner['id'],
                 "rater_type": RaterType.PARTNER.value,
                 "items": partner_items,
                 "completion_pct": 100,
                 "is_draft": False,
-                "submitted_at": datetime.now(timezone.utc).isoformat()
+                "submitted_at": datetime(2024, 12, 18, tzinfo=timezone.utc).isoformat()
             }
-            await db.responses.insert_one(partner_response)
+            await db.responses.insert_one(partner_response_q4)
         
-        # Manager response
+        # Manager response for Q4
         if score_pattern == 'underrate':
             mgr_items = generate_scores(1)
         elif score_pattern == 'high':
@@ -1418,21 +1487,88 @@ async def seed_demo_data():
         else:
             mgr_items = generate_scores(0)
         
-        mgr_response = {
+        mgr_response_q4 = {
             "id": str(uuid.uuid4()),
-            "cycle_id": cycle.id,
+            "cycle_id": cycle_q4.id,
             "po_id": po['id'],
             "rater_user_id": manager['id'],
             "rater_type": RaterType.MANAGER.value,
             "items": mgr_items,
             "completion_pct": 100,
             "is_draft": False,
-            "submitted_at": datetime.now(timezone.utc).isoformat()
+            "submitted_at": datetime(2024, 12, 20, tzinfo=timezone.utc).isoformat()
         }
-        await db.responses.insert_one(mgr_response)
+        await db.responses.insert_one(mgr_response_q4)
         
-        # Compute scorecard
-        await compute_scorecard(cycle.id, po['id'])
+        # Compute Q4 scorecard
+        await compute_scorecard(cycle_q4.id, po['id'])
+        
+        # === Q1 2025 CYCLE - Some pending ===
+        # First 3 POs (idx 0,1,2) have PENDING self-assessments
+        # Next 3 POs (idx 3,4,5) have completed self but pending partner/manager
+        # Rest have all completed
+        
+        if idx < 3:
+            # Pending self-assessment (no response created)
+            pass
+        else:
+            # Create self response
+            self_response = {
+                "id": str(uuid.uuid4()),
+                "cycle_id": cycle.id,
+                "po_id": po['id'],
+                "rater_user_id": po['user']['id'],
+                "rater_type": RaterType.SELF.value,
+                "items": generate_scores(0),
+                "completion_pct": 100,
+                "is_draft": False,
+                "submitted_at": datetime.now(timezone.utc).isoformat()
+            }
+            await db.responses.insert_one(self_response)
+        
+        if idx < 6:
+            # Pending partner assessments for first 6 POs
+            pass
+        else:
+            # Partner responses
+            for partner in assigned_partners:
+                if random.random() < 0.15:
+                    continue
+                
+                partner_response = {
+                    "id": str(uuid.uuid4()),
+                    "cycle_id": cycle.id,
+                    "po_id": po['id'],
+                    "rater_user_id": partner['id'],
+                    "rater_type": RaterType.PARTNER.value,
+                    "items": generate_scores(0),
+                    "completion_pct": 100,
+                    "is_draft": False,
+                    "submitted_at": datetime.now(timezone.utc).isoformat()
+                }
+                await db.responses.insert_one(partner_response)
+        
+        if idx < 6:
+            # Pending manager assessments for first 6 POs
+            pass
+        else:
+            # Manager response
+            mgr_response = {
+                "id": str(uuid.uuid4()),
+                "cycle_id": cycle.id,
+                "po_id": po['id'],
+                "rater_user_id": manager['id'],
+                "rater_type": RaterType.MANAGER.value,
+                "items": generate_scores(0),
+                "completion_pct": 100,
+                "is_draft": False,
+                "submitted_at": datetime.now(timezone.utc).isoformat()
+            }
+            await db.responses.insert_one(mgr_response)
+        
+        # Compute Q1 scorecard if any responses exist
+        if idx >= 3:
+            await compute_scorecard(cycle.id, po['id'])
     
     return {
         "status": "success",
@@ -1442,16 +1578,17 @@ async def seed_demo_data():
             "product_owners": 12,
             "dimensions": 8,
             "questions": 40,
-            "cycles": 1,
-            "assignments": 12
+            "cycles": 2,
+            "assignments": 24
         },
         "demo_accounts": [
             {"email": "admin@company.com", "password": "demo123", "role": "Admin"},
             {"email": "exec@company.com", "password": "demo123", "role": "ExecViewer"},
-            {"email": "james.chen@company.com", "password": "demo123", "role": "Manager"},
-            {"email": "alex.johnson@company.com", "password": "demo123", "role": "ProductOwner"},
-            {"email": "lisa.wang@company.com", "password": "demo123", "role": "BusinessPartner"}
-        ]
+            {"email": "james.chen@company.com", "password": "demo123", "role": "Manager - has pending assessments"},
+            {"email": "alex.johnson@company.com", "password": "demo123", "role": "ProductOwner - has pending self-assessment"},
+            {"email": "lisa.wang@company.com", "password": "demo123", "role": "BusinessPartner - has pending partner assessments"}
+        ],
+        "pending_assessments": "First 3 POs have pending self-assessments, first 6 POs have pending partner/manager assessments"
     }
 
 # Health check

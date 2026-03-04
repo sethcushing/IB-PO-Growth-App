@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { assignmentsAPI, seedDemoData, scorecardsAPI } from '@/lib/api';
+import { assignmentsAPI, seedDemoData, scorecardsAPI, cyclesAPI } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import Layout from '@/components/Layout';
 import MaturityBadge from '@/components/MaturityBadge';
@@ -18,7 +19,8 @@ import {
   Settings,
   RefreshCw,
   Eye,
-  FileText
+  FileText,
+  Calendar
 } from 'lucide-react';
 
 const DashboardPage = () => {
@@ -26,6 +28,8 @@ const DashboardPage = () => {
   const { user } = useAuth();
   const [assignments, setAssignments] = useState([]);
   const [scorecards, setScorecards] = useState([]);
+  const [cycles, setCycles] = useState([]);
+  const [selectedCycle, setSelectedCycle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
 
@@ -33,18 +37,39 @@ const DashboardPage = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (selectedCycle) {
+      fetchScorecards();
+    }
+  }, [selectedCycle]);
+
   const fetchData = async () => {
     try {
-      const [assignmentsRes, scorecardsRes] = await Promise.all([
+      const [assignmentsRes, cyclesRes] = await Promise.all([
         assignmentsAPI.getMy(),
-        scorecardsAPI.getAll().catch(() => ({ data: [] }))
+        cyclesAPI.getAll()
       ]);
       setAssignments(assignmentsRes.data);
-      setScorecards(scorecardsRes.data);
+      setCycles(cyclesRes.data);
+      
+      // Set default cycle to active one
+      const activeCycle = cyclesRes.data.find(c => c.status === 'Active') || cyclesRes.data[0];
+      if (activeCycle) {
+        setSelectedCycle(activeCycle.id);
+      }
     } catch (error) {
       console.error('Failed to fetch data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchScorecards = async () => {
+    try {
+      const scorecardsRes = await scorecardsAPI.getAll({ cycle_id: selectedCycle });
+      setScorecards(scorecardsRes.data);
+    } catch (error) {
+      console.error('Failed to fetch scorecards:', error);
     }
   };
 
@@ -53,7 +78,7 @@ const DashboardPage = () => {
     try {
       const response = await seedDemoData();
       toast.success('Demo data seeded successfully!', {
-        description: `Created ${response.data.data.product_owners} Product Owners with assessments`
+        description: response.data.pending_assessments
       });
       // Re-fetch data after seeding
       fetchData();
@@ -97,6 +122,7 @@ const DashboardPage = () => {
 
   const pendingAssignments = assignments.filter(a => a.status === 'Pending');
   const completedAssignments = assignments.filter(a => a.status === 'Completed');
+  const currentCycle = cycles.find(c => c.id === selectedCycle);
 
   return (
     <Layout>
@@ -217,7 +243,7 @@ const DashboardPage = () => {
                         className="bg-lime-600 hover:bg-lime-700 text-white"
                         data-testid={`start-assessment-${assignment.po_id}`}
                       >
-                        Start
+                        {assignment.completion_pct > 0 ? 'Continue' : 'Start'}
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
                     </div>
@@ -263,6 +289,7 @@ const DashboardPage = () => {
                             ? 'Self-assessment completed' 
                             : `Assessment for ${assignment.po_name}`}
                         </p>
+                        <p className="text-xs text-slate-400 mt-1">{assignment.cycle_name}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -286,85 +313,113 @@ const DashboardPage = () => {
           </div>
         )}
 
-        {/* All Scorecards - For Admin/ExecViewer/Manager */}
-        {['Admin', 'ExecViewer', 'Manager'].includes(user?.role) && scorecards.length > 0 && (
+        {/* Assessment Results - For Admin/ExecViewer/Manager */}
+        {['Admin', 'ExecViewer', 'Manager'].includes(user?.role) && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-4">
               <h2 className="font-heading text-xl font-semibold text-slate-900">
                 Assessment Results
               </h2>
-              <Badge variant="secondary">
-                {scorecards.length} scorecards
-              </Badge>
-            </div>
-            <div className="glass-card overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Product Owner</th>
-                      <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Team</th>
-                      <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Self Score</th>
-                      <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Partner Avg</th>
-                      <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Manager</th>
-                      <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Maturity</th>
-                      <th className="text-right px-6 py-4 text-sm font-medium text-slate-600">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {scorecards.slice(0, 10).map((sc) => (
-                      <tr key={sc.po_id} className="table-row-hover">
-                        <td className="px-6 py-4">
-                          <span className="font-medium text-slate-900">{sc.po_name}</span>
-                        </td>
-                        <td className="px-6 py-4 text-slate-600">{sc.po_team}</td>
-                        <td className="px-6 py-4">
-                          <span className="font-mono text-lime-700 font-medium">
-                            {sc.overall_self?.toFixed(1) || '—'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="font-mono text-sky-700 font-medium">
-                            {sc.overall_partner_avg?.toFixed(1) || '—'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="font-mono text-violet-700 font-medium">
-                            {sc.overall_manager?.toFixed(1) || '—'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <MaturityBadge band={sc.maturity_band} size="sm" />
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => navigate(`/scorecard/${sc.po_id}`)}
-                            data-testid={`view-scorecard-${sc.po_id}`}
-                          >
-                            <FileText className="w-4 h-4 mr-1" />
-                            Details
-                          </Button>
-                        </td>
-                      </tr>
+              <div className="flex items-center gap-3">
+                <Calendar className="w-4 h-4 text-slate-400" />
+                <Select value={selectedCycle || ''} onValueChange={setSelectedCycle}>
+                  <SelectTrigger className="w-48" data-testid="cycle-select">
+                    <SelectValue placeholder="Select cycle" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cycles.map((cycle) => (
+                      <SelectItem key={cycle.id} value={cycle.id}>
+                        {cycle.name} {cycle.status === 'Active' && '(Active)'}
+                      </SelectItem>
                     ))}
-                  </tbody>
-                </table>
+                  </SelectContent>
+                </Select>
+                <Badge variant="secondary">
+                  {scorecards.length} scorecards
+                </Badge>
               </div>
-              {scorecards.length > 10 && (
-                <div className="p-4 border-t border-slate-100 text-center">
-                  <Button
-                    variant="ghost"
-                    onClick={() => navigate('/executive')}
-                    className="text-lime-700"
-                  >
-                    View all {scorecards.length} scorecards
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </div>
-              )}
             </div>
+            
+            {scorecards.length === 0 ? (
+              <div className="glass-card p-8 text-center">
+                <FileText className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                <h3 className="font-heading text-lg font-semibold text-slate-900 mb-2">
+                  No scorecards yet
+                </h3>
+                <p className="text-slate-600">
+                  Scorecards will appear here once assessments are completed.
+                </p>
+              </div>
+            ) : (
+              <div className="glass-card overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-slate-50">
+                      <tr>
+                        <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Product Owner</th>
+                        <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Team</th>
+                        <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Self Score</th>
+                        <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Partner Avg</th>
+                        <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Manager</th>
+                        <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Maturity</th>
+                        <th className="text-right px-6 py-4 text-sm font-medium text-slate-600">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {scorecards.slice(0, 10).map((sc) => (
+                        <tr key={sc.po_id} className="table-row-hover">
+                          <td className="px-6 py-4">
+                            <span className="font-medium text-slate-900">{sc.po_name}</span>
+                          </td>
+                          <td className="px-6 py-4 text-slate-600">{sc.po_team}</td>
+                          <td className="px-6 py-4">
+                            <span className="font-mono text-lime-700 font-medium">
+                              {sc.overall_self?.toFixed(1) || '—'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="font-mono text-sky-700 font-medium">
+                              {sc.overall_partner_avg?.toFixed(1) || '—'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="font-mono text-violet-700 font-medium">
+                              {sc.overall_manager?.toFixed(1) || '—'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <MaturityBadge band={sc.maturity_band} size="sm" />
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => navigate(`/scorecard/${sc.po_id}`)}
+                              data-testid={`view-scorecard-${sc.po_id}`}
+                            >
+                              <FileText className="w-4 h-4 mr-1" />
+                              Details
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {scorecards.length > 10 && (
+                  <div className="p-4 border-t border-slate-100 text-center">
+                    <Button
+                      variant="ghost"
+                      onClick={() => navigate('/executive')}
+                      className="text-lime-700"
+                    >
+                      View all {scorecards.length} scorecards
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
