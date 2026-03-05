@@ -1,6 +1,6 @@
 import { Page, expect } from '@playwright/test';
 
-export const BASE_URL = 'https://po-maturity-hub.preview.emergentagent.com';
+export const BASE_URL = 'https://growth-eval-suite.preview.emergentagent.com';
 
 export async function waitForAppReady(page: Page) {
   await page.waitForLoadState('domcontentloaded');

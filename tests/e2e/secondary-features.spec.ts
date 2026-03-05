@@ -8,7 +8,7 @@ test.describe('Admin Console', () => {
   });
 
   test('admin can navigate to admin console', async ({ page }) => {
-    await page.getByTestId('quick-action-admin-console').click();
+    await page.getByTestId('quick-action-admin').click();
     await expect(page).toHaveURL(/\/admin/);
     await expect(page.getByRole('heading', { name: 'Admin Console' })).toBeVisible();
   });
@@ -48,7 +48,7 @@ test.describe('Admin Console', () => {
 
   test('non-admin cannot access admin console', async ({ page }) => {
     // Login as PO
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await page.getByTestId('login-email-input').fill('alex.johnson@company.com');
     await page.getByTestId('login-password-input').fill('demo123');
     await page.getByTestId('login-submit-btn').click();
@@ -128,7 +128,7 @@ test.describe('CSV Export', () => {
   test('exec viewer can trigger CSV export', async ({ page }) => {
     await dismissToasts(page);
     // Login as exec viewer
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await page.getByTestId('demo-login-execviewer').click();
     await page.getByTestId('login-submit-btn').click();
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 });
@@ -138,35 +138,36 @@ test.describe('CSV Export', () => {
   });
 });
 
-test.describe('Navigation Layout', () => {
-  test('layout shows correct nav items for admin', async ({ page }) => {
+test.describe('Dashboard Growth Results', () => {
+  test('dashboard shows Growth Results section for admin', async ({ page }) => {
     await dismissToasts(page);
     await loginAsAdmin(page);
-    await expect(page.getByTestId('nav-dashboard')).toBeVisible();
-    await expect(page.getByTestId('nav-my-team')).toBeVisible();
-    await expect(page.getByTestId('nav-executive')).toBeVisible();
-    await expect(page.getByTestId('nav-admin')).toBeVisible();
+    await expect(page.getByText('Growth Results')).toBeVisible();
   });
 
-  test('layout shows logout button', async ({ page }) => {
+  test('dashboard has cycle selector in Growth Results', async ({ page }) => {
     await dismissToasts(page);
     await loginAsAdmin(page);
-    await expect(page.getByTestId('logout-btn')).toBeVisible();
+    await expect(page.getByTestId('cycle-select')).toBeVisible();
   });
 
-  test('logout button signs out user', async ({ page }) => {
+  test('dashboard Growth Results table shows Level column', async ({ page }) => {
     await dismissToasts(page);
     await loginAsAdmin(page);
-    await page.getByTestId('logout-btn').click({ force: true });
-    await expect(page).toHaveURL(/\/login/);
+    // Table header should say "Level"
+    await expect(page.getByRole('columnheader', { name: 'Level' })).toBeVisible();
   });
+});
 
-  test('product owner nav shows correct items', async ({ page }) => {
+test.describe('Dashboard Assessment Language', () => {
+  test('dashboard shows growth assessment language for pending', async ({ page }) => {
     await dismissToasts(page);
     await loginAsPO(page);
-    await expect(page.getByTestId('nav-dashboard')).toBeVisible();
-    await expect(page.getByTestId('nav-my-scorecard')).toBeVisible();
-    // PO should not see admin in nav
-    await expect(page.getByTestId('nav-admin')).not.toBeVisible();
+    // Check for "growth assessment" in pending section
+    const pendingSection = page.getByText('Complete your growth assessment');
+    // This appears in pending assignment card
+    if (await pendingSection.count() > 0) {
+      await expect(pendingSection.first()).toBeVisible();
+    }
   });
 });

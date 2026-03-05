@@ -299,7 +299,7 @@ const AdminPage = () => {
               </div>
 
               <div className="pt-6 border-t border-slate-200">
-                <h3 className="font-medium text-slate-900 mb-4">Maturity Bands Configuration</h3>
+                <h3 className="font-medium text-slate-900 mb-4">Growth Levels Configuration</h3>
                 <div className="grid grid-cols-5 gap-3">
                   {[
                     { band: 'Foundational', range: '0-24' },

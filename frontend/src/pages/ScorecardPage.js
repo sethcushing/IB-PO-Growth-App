@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import Layout from '@/components/Layout';
 import RadarChart from '@/components/charts/RadarChart';
 import DeltaChip from '@/components/DeltaChip';
-import MaturityBadge from '@/components/MaturityBadge';
+import GrowthBadge from '@/components/MaturityBadge';
 import {
   TrendingUp,
   Users,
@@ -18,7 +18,10 @@ import {
   Info,
   Calendar,
   ClipboardCheck,
-  ArrowRight
+  ArrowRight,
+  Lightbulb,
+  Target,
+  BookOpen
 } from 'lucide-react';
 import {
   Tooltip,
@@ -26,6 +29,94 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+
+// Coaching recommendations based on dimension scores
+const getCoachingRecommendations = (dimensionScores) => {
+  if (!dimensionScores || dimensionScores.length === 0) return [];
+  
+  const recommendations = [];
+  
+  // Find dimensions with low scores (below 50) or high misalignment
+  dimensionScores.forEach(ds => {
+    const selfScore = ds.self_score;
+    const delta = ds.delta_self_partner;
+    
+    if (selfScore !== null && selfScore < 40) {
+      recommendations.push({
+        type: 'priority',
+        dimension: ds.dimension_name,
+        title: `Focus Area: ${ds.dimension_name}`,
+        description: getRecommendationText(ds.dimension_name, 'low'),
+        icon: Target
+      });
+    } else if (selfScore !== null && selfScore < 60) {
+      recommendations.push({
+        type: 'growth',
+        dimension: ds.dimension_name,
+        title: `Growth Opportunity: ${ds.dimension_name}`,
+        description: getRecommendationText(ds.dimension_name, 'medium'),
+        icon: TrendingUp
+      });
+    }
+    
+    if (delta !== null && Math.abs(delta) > 15) {
+      recommendations.push({
+        type: 'alignment',
+        dimension: ds.dimension_name,
+        title: `Alignment Gap: ${ds.dimension_name}`,
+        description: delta > 0 
+          ? `Your self-assessment is higher than partner feedback. Consider seeking more specific feedback and identifying blind spots.`
+          : `Partners rate you higher than you rate yourself. Recognize your strengths and communicate your value more confidently.`,
+        icon: Users
+      });
+    }
+  });
+  
+  // Sort by priority (priority > alignment > growth) and limit to top 4
+  const priorityOrder = { priority: 0, alignment: 1, growth: 2 };
+  return recommendations
+    .sort((a, b) => priorityOrder[a.type] - priorityOrder[b.type])
+    .slice(0, 4);
+};
+
+const getRecommendationText = (dimension, level) => {
+  const recommendations = {
+    'Strategy & Outcomes': {
+      low: 'Start by documenting a clear product vision. Schedule regular alignment sessions with stakeholders to validate strategic direction.',
+      medium: 'Strengthen your outcome-based roadmapping. Connect features to measurable business results.'
+    },
+    'Customer & Discovery': {
+      low: 'Prioritize direct customer engagement. Set up regular user interviews and establish a research rhythm.',
+      medium: 'Expand your discovery toolkit. Consider job-to-be-done frameworks and experiment with rapid prototyping.'
+    },
+    'Backlog & Prioritization': {
+      low: 'Implement a consistent prioritization framework (RICE, WSJF). Focus on backlog hygiene and clear acceptance criteria.',
+      medium: 'Refine your prioritization approach. Involve stakeholders in tradeoff discussions to build alignment.'
+    },
+    'Delivery Partnership': {
+      low: 'Strengthen collaboration with engineering. Attend standups, participate in technical discussions, and build trust.',
+      medium: 'Deepen cross-functional partnerships. Consider pairing sessions with design and engineering leads.'
+    },
+    'Stakeholder Management': {
+      low: 'Map your stakeholders and their needs. Establish regular communication cadences and proactive updates.',
+      medium: 'Enhance your influence skills. Practice handling conflict and building consensus across groups.'
+    },
+    'Execution & Reliability': {
+      low: 'Focus on commitment reliability. Break work into smaller increments and improve estimation accuracy.',
+      medium: 'Strengthen sprint discipline. Implement better blockers management and escalation processes.'
+    },
+    'Data & Metrics': {
+      low: 'Define success metrics for your products. Set up basic dashboards to track key outcomes.',
+      medium: 'Deepen your data-driven approach. Run more A/B tests and use analytics to guide decisions.'
+    },
+    'Governance & Ways of Working': {
+      low: 'Familiarize yourself with organizational processes. Document key decisions and ensure compliance awareness.',
+      medium: 'Streamline governance processes. Help establish best practices that balance compliance with agility.'
+    }
+  };
+  
+  return recommendations[dimension]?.[level] || 'Continue developing in this area through practice and feedback.';
+};
 
 const ScorecardPage = () => {
   const { poId } = useParams();
@@ -233,7 +324,7 @@ const ScorecardPage = () => {
               </Select>
             </div>
             
-            <MaturityBadge band={scorecard.maturity_band} />
+            <GrowthBadge band={scorecard.maturity_band} />
             {scorecard.flags?.slice(0, 2).map((flag, i) => (
               <Badge key={i} variant="outline" className="border-amber-300 text-amber-700 bg-amber-50">
                 <AlertTriangle className="w-3 h-3 mr-1" />
@@ -267,7 +358,7 @@ const ScorecardPage = () => {
               <div className="w-10 h-10 bg-lime-100 rounded-lg flex items-center justify-center">
                 <TrendingUp className="w-5 h-5 text-lime-600" />
               </div>
-              <span className="text-sm text-slate-500">Overall Score</span>
+              <span className="text-sm text-slate-500">Growth Score</span>
             </div>
             <div className="text-4xl font-heading font-bold text-slate-900">
               {scorecard.overall_self?.toFixed(1) || '—'}
@@ -431,6 +522,53 @@ const ScorecardPage = () => {
             ))}
           </div>
         </div>
+
+        {/* Coaching Recommendations */}
+        {(() => {
+          const recommendations = getCoachingRecommendations(scorecard.dimension_scores);
+          if (recommendations.length === 0) return null;
+          
+          return (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Lightbulb className="w-5 h-5 text-amber-500" />
+                <h2 className="font-heading text-xl font-semibold text-slate-900">
+                  Coaching Recommendations
+                </h2>
+              </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                {recommendations.map((rec, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`glass-card p-5 space-y-3 border-l-4 ${
+                      rec.type === 'priority' ? 'border-l-amber-500 bg-amber-50/30' :
+                      rec.type === 'alignment' ? 'border-l-sky-500 bg-sky-50/30' :
+                      'border-l-lime-500 bg-lime-50/30'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                        rec.type === 'priority' ? 'bg-amber-100' :
+                        rec.type === 'alignment' ? 'bg-sky-100' :
+                        'bg-lime-100'
+                      }`}>
+                        <rec.icon className={`w-5 h-5 ${
+                          rec.type === 'priority' ? 'text-amber-600' :
+                          rec.type === 'alignment' ? 'text-sky-600' :
+                          'text-lime-600'
+                        }`} />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-slate-900">{rec.title}</h4>
+                        <p className="text-sm text-slate-600 mt-1 leading-relaxed">{rec.description}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Confidence & Raters */}
         <div className="glass-card p-6">

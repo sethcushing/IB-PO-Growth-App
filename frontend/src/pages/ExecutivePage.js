@@ -9,7 +9,7 @@ import Layout from '@/components/Layout';
 import RadarChart from '@/components/charts/RadarChart';
 import HeatmapChart from '@/components/charts/HeatmapChart';
 import ScatterChart from '@/components/charts/ScatterChart';
-import MaturityBadge from '@/components/MaturityBadge';
+import GrowthBadge from '@/components/MaturityBadge';
 import {
   Download,
   TrendingUp,
@@ -214,15 +214,15 @@ const ExecutivePage = () => {
           </div>
         </div>
 
-        {/* Maturity Distribution */}
+        {/* Growth Distribution */}
         <div className="glass-card p-6">
           <h2 className="font-heading text-lg font-semibold text-slate-900 mb-6">
-            Maturity Distribution
+            Growth Level Distribution
           </h2>
           <div className="flex flex-wrap gap-4">
             {Object.entries(summary?.maturity_distribution || {}).map(([band, count]) => (
               <div key={band} className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
-                <MaturityBadge band={band} />
+                <GrowthBadge band={band} />
                 <div>
                   <div className="text-2xl font-heading font-bold text-slate-900">{count}</div>
                   <div className="text-xs text-slate-500">POs</div>
@@ -275,7 +275,7 @@ const ExecutivePage = () => {
         {/* Heatmap */}
         <div className="glass-card p-6">
           <h2 className="font-heading text-lg font-semibold text-slate-900 mb-6">
-            Maturity Heatmap
+            Growth Heatmap
           </h2>
           {heatmapData && <HeatmapChart data={heatmapData} />}
         </div>
@@ -349,7 +349,7 @@ const ExecutivePage = () => {
                   <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Partner</th>
                   <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Manager</th>
                   <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Alignment</th>
-                  <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Maturity</th>
+                  <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Growth</th>
                   <th className="text-right px-6 py-4 text-sm font-medium text-slate-600">Action</th>
                 </tr>
               </thead>
@@ -373,7 +373,7 @@ const ExecutivePage = () => {
                       <span className="font-mono">{sc.alignment_index?.toFixed(0) || '—'}%</span>
                     </td>
                     <td className="px-6 py-4">
-                      <MaturityBadge band={sc.maturity_band} size="sm" />
+                      <GrowthBadge band={sc.maturity_band} size="sm" />
                     </td>
                     <td className="px-6 py-4 text-right">
                       <Button

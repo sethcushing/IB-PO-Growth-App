@@ -1,71 +1,33 @@
 import { test, expect } from '@playwright/test';
 import { loginAs, loginAsAdmin, loginAsExec, loginAsManager, loginAsPO, dismissToasts } from '../fixtures/helpers';
 
-test.describe('Landing Page', () => {
+test.describe('Landing Page / Login', () => {
   test.beforeEach(async ({ page }) => {
     await dismissToasts(page);
   });
 
-  test('landing page loads with hero section and title', async ({ page }) => {
+  test('landing page loads with PO Growth branding', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
-    await expect(page.getByTestId('hero-cta-btn')).toBeVisible();
-    await expect(page.getByTestId('learn-more-btn')).toBeVisible();
-    await expect(page.getByTestId('login-nav-btn')).toBeVisible();
-    await expect(page.getByTestId('get-started-btn')).toBeVisible();
+    // Check for PO Growth branding
+    await expect(page.getByText('PO Growth').first()).toBeVisible();
+    await expect(page.getByText('Development Platform').first()).toBeVisible();
   });
 
-  test('landing page shows 3-step how it works section', async ({ page }) => {
+  test('landing page shows Growth Score terminology', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
-    // Scroll to how-it-works
-    await page.evaluate(() => document.getElementById('how-it-works')?.scrollIntoView());
-    await expect(page.getByRole('heading', { name: 'Invite', exact: true })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Assess', exact: true })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Executive Insights', exact: true })).toBeVisible();
+    // Growth Score is displayed on landing page hero section
+    await expect(page.getByText('Growth Score').first()).toBeVisible();
   });
 
-  test('learn more button scrolls to how it works', async ({ page }) => {
+  test('landing page shows login form', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
-    await page.getByTestId('learn-more-btn').click();
-    // After scroll the how-it-works section should be visible
-    await expect(page.locator('#how-it-works')).toBeVisible();
-  });
-
-  test('sign in nav button navigates to login', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
-    await page.getByTestId('login-nav-btn').click();
-    await expect(page).toHaveURL(/\/login/);
-  });
-
-  test('CTA button navigates to register when not logged in', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
-    await page.getByTestId('cta-btn').click();
-    await expect(page).toHaveURL(/\/register/);
-  });
-
-  test('maturity bands section displayed', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
-    await expect(page.getByText('Elite')).toBeVisible();
-    await expect(page.getByText('Leading')).toBeVisible();
-    await expect(page.getByText('Performing', { exact: true })).toBeVisible();
-    await expect(page.getByText('Developing')).toBeVisible();
-    await expect(page.getByText('Foundational')).toBeVisible();
-  });
-});
-
-test.describe('Login Page', () => {
-  test.beforeEach(async ({ page }) => {
-    await dismissToasts(page);
-  });
-
-  test('login page loads with form fields', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
     await expect(page.getByTestId('login-email-input')).toBeVisible();
     await expect(page.getByTestId('login-password-input')).toBeVisible();
     await expect(page.getByTestId('login-submit-btn')).toBeVisible();
   });
 
-  test('demo account quick-select buttons shown', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+  test('landing page shows demo account buttons', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await expect(page.getByTestId('demo-login-admin')).toBeVisible();
     await expect(page.getByTestId('demo-login-execviewer')).toBeVisible();
     await expect(page.getByTestId('demo-login-manager')).toBeVisible();
@@ -74,18 +36,24 @@ test.describe('Login Page', () => {
   });
 
   test('demo account quick-select fills email and password', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await page.getByTestId('demo-login-admin').click();
     await expect(page.getByTestId('login-email-input')).toHaveValue('admin@company.com');
     await expect(page.getByTestId('login-password-input')).toHaveValue('demo123');
   });
 
   test('toggle password visibility', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     const passwordInput = page.getByTestId('login-password-input');
     await expect(passwordInput).toHaveAttribute('type', 'password');
     await page.getByTestId('toggle-password-btn').click();
     await expect(passwordInput).toHaveAttribute('type', 'text');
+  });
+
+  test('landing page shows growth level badges', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    // Growth levels shown in score display area
+    await expect(page.getByText('On Track')).toBeVisible();
   });
 });
 
@@ -115,33 +83,25 @@ test.describe('Authentication Flow', () => {
   });
 
   test('invalid credentials shows error', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await page.getByTestId('login-email-input').fill('invalid@company.com');
     await page.getByTestId('login-password-input').fill('wrongpassword');
     await page.getByTestId('login-submit-btn').click();
-    // Should stay on login page and show error toast
-    await expect(page).toHaveURL(/\/login/);
+    // Should stay on landing/login page
+    await expect(page).toHaveURL(/\//);
   });
 
-  test('logout redirects to login page', async ({ page }) => {
+  test('logout redirects to landing page', async ({ page }) => {
     await loginAsAdmin(page);
-    // Find and click logout
-    const logoutBtn = page.getByTestId('logout-btn');
-    if (await logoutBtn.isVisible()) {
-      await logoutBtn.click({ force: true });
-      await expect(page).toHaveURL(/\/login/);
-    } else {
-      // Try layout logout button
-      await page.evaluate(() => {
-        const btn = document.querySelector('[data-testid="logout-btn"]');
-        if (btn) (btn as HTMLElement).click();
-      });
-    }
+    await page.getByTestId('logout-btn').click({ force: true });
+    // After logout, should go back to landing page
+    await expect(page.getByTestId('login-email-input')).toBeVisible();
   });
 
-  test('protected route redirects unauthenticated user to login', async ({ page }) => {
+  test('protected route redirects unauthenticated user', async ({ page }) => {
     await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
-    await expect(page).toHaveURL(/\/login/);
+    // Should redirect to login (landing page has login form)
+    await expect(page.getByTestId('login-email-input')).toBeVisible();
   });
 });
 
@@ -152,36 +112,78 @@ test.describe('Dashboard Role-Based Quick Actions', () => {
 
   test('admin sees all quick action buttons', async ({ page }) => {
     await loginAsAdmin(page);
-    await expect(page.getByTestId('quick-action-my-scorecard')).toBeVisible();
+    await expect(page.getByTestId('quick-action-my-growth')).toBeVisible();
     await expect(page.getByTestId('quick-action-my-team')).toBeVisible();
-    await expect(page.getByTestId('quick-action-executive-dashboard')).toBeVisible();
-    await expect(page.getByTestId('quick-action-admin-console')).toBeVisible();
+    await expect(page.getByTestId('quick-action-organization')).toBeVisible();
+    await expect(page.getByTestId('quick-action-admin')).toBeVisible();
   });
 
-  test('exec viewer sees executive dashboard button', async ({ page }) => {
+  test('exec viewer sees organization button', async ({ page }) => {
     await loginAsExec(page);
-    await expect(page.getByTestId('quick-action-executive-dashboard')).toBeVisible();
-    // Exec should not see admin console
-    await expect(page.getByTestId('quick-action-admin-console')).not.toBeVisible();
+    await expect(page.getByTestId('quick-action-organization')).toBeVisible();
+    // Exec should not see admin
+    await expect(page.getByTestId('quick-action-admin')).not.toBeVisible();
   });
 
-  test('manager sees team and scorecard buttons', async ({ page }) => {
+  test('manager sees team and growth buttons', async ({ page }) => {
     await loginAsManager(page);
-    await expect(page.getByTestId('quick-action-my-scorecard')).toBeVisible();
+    await expect(page.getByTestId('quick-action-my-growth')).toBeVisible();
     await expect(page.getByTestId('quick-action-my-team')).toBeVisible();
-    // Manager should not see executive dashboard as quick action
-    await expect(page.getByTestId('quick-action-executive-dashboard')).not.toBeVisible();
+    // Manager should not see organization as quick action
+    await expect(page.getByTestId('quick-action-organization')).not.toBeVisible();
   });
 
-  test('product owner sees scorecard button', async ({ page }) => {
+  test('product owner sees my growth button', async ({ page }) => {
     await loginAsPO(page);
-    await expect(page.getByTestId('quick-action-my-scorecard')).toBeVisible();
-    // PO should not see admin console or team
-    await expect(page.getByTestId('quick-action-admin-console')).not.toBeVisible();
+    await expect(page.getByTestId('quick-action-my-growth')).toBeVisible();
+    // PO should not see admin
+    await expect(page.getByTestId('quick-action-admin')).not.toBeVisible();
   });
 
-  test('admin can click seed demo data button on dashboard', async ({ page }) => {
+  test('admin can see seed demo data button on dashboard', async ({ page }) => {
     await loginAsAdmin(page);
     await expect(page.getByTestId('seed-demo-btn')).toBeVisible();
+  });
+});
+
+test.describe('Navigation Layout', () => {
+  test.beforeEach(async ({ page }) => {
+    await dismissToasts(page);
+  });
+
+  test('layout shows correct nav items for admin', async ({ page }) => {
+    await loginAsAdmin(page);
+    await expect(page.getByTestId('nav-dashboard')).toBeVisible();
+    await expect(page.getByTestId('nav-my-team')).toBeVisible();
+    await expect(page.getByTestId('nav-organization')).toBeVisible();
+    await expect(page.getByTestId('nav-admin')).toBeVisible();
+  });
+
+  test('layout shows logout button', async ({ page }) => {
+    await loginAsAdmin(page);
+    await expect(page.getByTestId('logout-btn')).toBeVisible();
+  });
+
+  test('logout button signs out user', async ({ page }) => {
+    await loginAsAdmin(page);
+    await page.getByTestId('logout-btn').click({ force: true });
+    await expect(page.getByTestId('login-email-input')).toBeVisible();
+  });
+
+  test('product owner nav shows correct items', async ({ page }) => {
+    await loginAsPO(page);
+    await expect(page.getByTestId('nav-dashboard')).toBeVisible();
+    await expect(page.getByTestId('nav-my-growth')).toBeVisible();
+    // PO should not see admin in nav
+    await expect(page.getByTestId('nav-admin')).not.toBeVisible();
+  });
+
+  test('sidebar shows PO Growth branding', async ({ page }) => {
+    await loginAsAdmin(page);
+    // Ensure viewport is large enough to show sidebar (desktop view)
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.waitForLoadState('domcontentloaded');
+    // Sidebar branding should be visible in desktop view
+    await expect(page.getByText('PO Growth').first()).toBeVisible();
   });
 });

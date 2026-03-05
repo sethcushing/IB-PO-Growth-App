@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import Layout from '@/components/Layout';
-import MaturityBadge from '@/components/MaturityBadge';
+import GrowthBadge from '@/components/MaturityBadge';
 import {
   Users,
   ArrowRight,
@@ -141,7 +141,7 @@ const ManagerPage = () => {
                     <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Level</th>
                     <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Completion</th>
                     <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Score</th>
-                    <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Maturity</th>
+                    <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Growth</th>
                     <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Biggest Gap</th>
                     <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Flags</th>
                     <th className="text-right px-6 py-4 text-sm font-medium text-slate-600">Action</th>
@@ -183,7 +183,7 @@ const ManagerPage = () => {
                       </td>
                       <td className="px-6 py-4">
                         {member.maturity_band ? (
-                          <MaturityBadge band={member.maturity_band} size="sm" />
+                          <GrowthBadge band={member.maturity_band} size="sm" />
                         ) : (
                           <span className="text-slate-400">—</span>
                         )}
