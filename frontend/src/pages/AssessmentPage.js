@@ -17,21 +17,22 @@ import {
   HelpCircle,
   AlertCircle,
   Eye,
-  Edit
+  Edit,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const rubricLabels = {
-  1: { label: 'Ad hoc', description: 'Reactive, inconsistent behavior' },
-  2: { label: 'Basic', description: 'Inconsistent, developing capability' },
-  3: { label: 'Defined', description: 'Repeatable, structured approach' },
-  4: { label: 'Strong', description: 'Measurable, consistent excellence' },
-  5: { label: 'Leading', description: 'Optimized, role model behavior' }
+  1: { label: 'Not yet', description: 'This isn\'t something I do consistently' },
+  2: { label: 'Sometimes', description: 'I\'m working on this but it\'s not consistent' },
+  3: { label: 'Usually', description: 'I do this regularly with some room to grow' },
+  4: { label: 'Often', description: 'This is a strength — I do it well most of the time' },
+  5: { label: 'Always', description: 'I\'m a role model in this area' }
 };
 
 const AssessmentPage = () => {
@@ -352,19 +353,24 @@ const AssessmentPage = () => {
                         {getQuestionText(question)}
                       </p>
                       {question.help_text && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button className="mt-2 flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700">
-                                <HelpCircle className="w-4 h-4" />
-                                Guidance
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom" className="max-w-sm">
-                              <p>{question.help_text}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button 
+                              type="button"
+                              className="mt-2 flex items-center gap-1.5 text-sm text-lime-600 hover:text-lime-700 transition-colors"
+                            >
+                              <HelpCircle className="w-4 h-4" />
+                              <span>What does this mean?</span>
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent 
+                            side="bottom" 
+                            align="start"
+                            className="w-80 bg-slate-900 text-white p-4 rounded-xl shadow-xl border-0"
+                          >
+                            <p className="text-sm leading-relaxed">{question.help_text}</p>
+                          </PopoverContent>
+                        </Popover>
                       )}
                     </div>
                   </div>

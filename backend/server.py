@@ -1187,61 +1187,73 @@ async def seed_demo_data():
     # Create questions (5 per dimension)
     questions_by_dim = {
         "Strategy & Outcomes": [
-            ("I communicate a clear product vision tied to measurable outcomes.", "This PO communicates a clear product vision tied to measurable outcomes.", "This PO demonstrates clear product vision communication."),
-            ("I translate strategy into an outcome-based roadmap.", "This PO translates strategy into outcome-based roadmaps.", "This PO consistently delivers outcome-based roadmaps."),
-            ("I align quarterly goals with enterprise priorities.", "This PO aligns quarterly goals with enterprise priorities.", "This PO independently drives strategic alignment."),
-            ("I make tradeoffs explicit with clear rationale.", "This PO makes tradeoffs explicit with clear rationale.", "This PO demonstrates mature tradeoff decision-making."),
-            ("I maintain a north star + KPIs that teams can recite.", "This PO maintains clear north star metrics.", "This PO ensures team-wide understanding of success metrics.")
+            ("I can clearly explain our product vision and how we'll know if we're successful.", "They clearly share where the product is headed and what success looks like.", "They paint a clear picture of the product vision and tie it to real outcomes."),
+            ("I turn our strategy into a roadmap that focuses on outcomes, not just features.", "They create roadmaps that focus on what we're trying to achieve, not just what we're building.", "They effectively translate strategy into outcome-focused plans."),
+            ("I make sure our team's goals connect to what the company cares about most.", "They help the team understand how our work fits into the bigger picture.", "They consistently align team priorities with company objectives."),
+            ("When we have to make tough choices, I'm clear about why we're choosing one thing over another.", "They're upfront about tradeoffs and explain the reasoning behind decisions.", "They handle tradeoff decisions with clarity and transparency."),
+            ("Our team knows our key metrics and what we're aiming for — they could explain it to anyone.", "The team clearly understands what success looks like and can articulate our goals.", "They ensure the whole team understands and can communicate our success metrics.")
         ],
         "Customer & Discovery": [
-            ("I regularly validate problems with customers/users.", "This PO regularly validates problems with customers.", "This PO demonstrates consistent customer engagement."),
-            ("I use discovery to reduce risk before delivery.", "This PO uses discovery effectively.", "This PO drives risk reduction through discovery."),
-            ("I capture user insights in a reusable system.", "This PO maintains organized user insights.", "This PO ensures insights are systematically captured."),
-            ("I test assumptions appropriately.", "This PO tests assumptions effectively.", "This PO demonstrates hypothesis-driven approach."),
-            ("I demonstrate clear articulation of user pain points.", "This PO articulates user pain points clearly.", "This PO shows deep user empathy.")
+            ("I regularly talk to customers or users to make sure we're solving real problems.", "They make time to understand customer needs firsthand.", "They consistently engage with customers to validate problems."),
+            ("Before we build something big, I do the research to reduce our risk of building the wrong thing.", "They do their homework before committing the team to major work.", "They use discovery effectively to de-risk delivery."),
+            ("I keep track of what we learn from users in a way that's easy for the team to reference.", "They organize customer insights so the team can easily learn from them.", "They maintain well-organized, accessible user research."),
+            ("I test our assumptions before we commit to big bets.", "They don't just assume — they validate ideas before going all-in.", "They demonstrate a hypothesis-driven approach to product decisions."),
+            ("I can clearly describe the problems our users face and why they matter.", "They really understand user pain points and can explain them clearly.", "They show genuine empathy and deep understanding of user needs.")
         ],
         "Backlog & Prioritization": [
-            ("I ensure backlog items are well-formed.", "This PO maintains well-formed backlog items.", "This PO ensures backlog quality standards."),
-            ("I use consistent outcome-driven prioritization.", "This PO uses consistent prioritization methods.", "This PO demonstrates mature prioritization."),
-            ("I actively manage dependencies and sequencing.", "This PO manages dependencies effectively.", "This PO proactively handles dependencies."),
-            ("I keep backlog healthy and noise-free.", "This PO maintains a healthy backlog.", "This PO ensures backlog hygiene."),
-            ("I ensure ready pipeline with minimal thrash.", "This PO provides ready work to teams.", "This PO minimizes team disruption.")
+            ("Our backlog items are clear enough that anyone on the team can understand what needs to be done.", "Their backlog items are clear and well-written.", "They maintain high-quality, well-defined backlog items."),
+            ("I use a consistent approach to decide what's most important to work on.", "They have a clear method for deciding priorities.", "They demonstrate mature, consistent prioritization practices."),
+            ("I stay on top of dependencies and make sure we're working on things in the right order.", "They're good at managing dependencies and sequencing work.", "They proactively manage dependencies across teams."),
+            ("Our backlog is focused and doesn't have a bunch of outdated or irrelevant items cluttering it up.", "They keep the backlog clean and focused.", "They maintain excellent backlog hygiene."),
+            ("The team usually has clear, ready work to pick up without a lot of last-minute scrambling.", "They keep the team supplied with ready, well-prepared work.", "They ensure minimal disruption from unclear or changing requirements.")
         ],
         "Delivery Partnership": [
-            ("I partner effectively with Eng/Design to shape solutions.", "This PO partners effectively with delivery teams.", "This PO demonstrates strong delivery partnership."),
-            ("I participate in planning and keep decisions timely.", "This PO participates actively in planning.", "This PO ensures timely decision-making."),
-            ("I manage scope and mitigate delivery risk.", "This PO manages scope effectively.", "This PO proactively mitigates delivery risks."),
-            ("I facilitate shared understanding through artifacts.", "This PO creates clear documentation.", "This PO ensures team alignment through artifacts."),
-            ("I support teams without micromanaging.", "This PO empowers teams appropriately.", "This PO demonstrates servant leadership.")
+            ("I work closely with engineering and design to shape solutions together, not just hand off requirements.", "They collaborate well with the delivery team rather than just handing things over.", "They demonstrate strong partnership with engineering and design."),
+            ("I show up to planning sessions prepared and help the team make decisions quickly.", "They're engaged in planning and help keep things moving.", "They ensure timely decision-making during delivery."),
+            ("I help manage scope when things get complicated and watch out for delivery risks.", "They help manage scope and flag risks before they become problems.", "They proactively mitigate delivery risks."),
+            ("I create documentation and artifacts that help everyone stay on the same page.", "Their documentation helps the team understand what we're building and why.", "They ensure team alignment through clear artifacts."),
+            ("I support the team without micromanaging — I trust them to figure out the how.", "They empower the team rather than telling them exactly what to do.", "They demonstrate servant leadership with delivery teams.")
         ],
         "Stakeholder Management": [
-            ("I build trust through transparency.", "This PO builds trust with stakeholders.", "This PO demonstrates trustworthy communication."),
-            ("I handle conflict constructively.", "This PO handles conflicts effectively.", "This PO navigates conflicts maturely."),
-            ("I align stakeholders on decisions.", "This PO aligns stakeholders well.", "This PO ensures stakeholder alignment."),
-            ("I navigate priority battles without escalating.", "This PO manages competing priorities.", "This PO handles priority conflicts effectively."),
-            ("I proactively manage expectations.", "This PO manages expectations well.", "This PO demonstrates proactive expectation management.")
+            ("I'm transparent with stakeholders, which helps build trust over time.", "They're honest and transparent, which builds trust.", "They demonstrate trustworthy, transparent communication."),
+            ("When there's disagreement, I help work through it constructively.", "They handle disagreements professionally and find ways forward.", "They navigate conflicts with maturity and skill."),
+            ("I make sure stakeholders are aligned before we move forward on big decisions.", "They bring stakeholders together and build consensus.", "They ensure stakeholder alignment on key decisions."),
+            ("I can navigate competing priorities without everything turning into an escalation.", "They handle competing demands without creating drama.", "They manage priority conflicts effectively."),
+            ("I set realistic expectations and keep people informed along the way.", "They're good at setting expectations and keeping people in the loop.", "They proactively manage stakeholder expectations.")
         ],
         "Execution & Reliability": [
-            ("I consistently meet commitments or renegotiate early.", "This PO meets commitments reliably.", "This PO demonstrates commitment reliability."),
-            ("I operate with strong sprint discipline.", "This PO maintains sprint discipline.", "This PO ensures execution discipline."),
-            ("I reduce rework via clear requirements.", "This PO minimizes rework.", "This PO prevents rework through clarity."),
-            ("I escalate blockers with context and options.", "This PO escalates blockers effectively.", "This PO demonstrates mature escalation."),
-            ("I drive continuous improvement.", "This PO drives process improvement.", "This PO ensures continuous improvement.")
+            ("When I commit to something, I deliver — or I let people know early if plans need to change.", "They're reliable — when they commit to something, it happens.", "They consistently meet commitments or communicate early when plans change."),
+            ("I run a tight sprint process and help the team stay focused.", "They help keep the team focused and the sprint running smoothly.", "They maintain strong execution discipline."),
+            ("I write clear requirements that help avoid rework and confusion.", "Their requirements are clear enough that we rarely have to redo work.", "They prevent rework through requirement clarity."),
+            ("When something's blocked, I escalate with context and options, not just complaints.", "They escalate blockers effectively with helpful context.", "They demonstrate mature escalation practices."),
+            ("I'm always looking for ways we can work better as a team.", "They're always trying to help the team improve.", "They consistently drive process improvement.")
         ],
         "Data & Metrics": [
-            ("I define success metrics before build starts.", "This PO defines success metrics upfront.", "This PO ensures metrics-driven development."),
-            ("I review performance post-launch.", "This PO reviews launch performance.", "This PO demonstrates post-launch discipline."),
-            ("I connect work to measurable business value.", "This PO connects work to business value.", "This PO ensures value realization."),
-            ("I use dashboards to guide decisions.", "This PO uses data effectively.", "This PO demonstrates data-driven decisions."),
-            ("I encourage evidence-based culture.", "This PO promotes evidence-based decisions.", "This PO fosters data culture.")
+            ("Before we start building, I define how we'll measure success.", "They think about success metrics before the team starts building.", "They ensure metrics are defined upfront."),
+            ("After we launch something, I check how it's performing and share what we learned.", "They follow up after launches to see how things are actually doing.", "They demonstrate strong post-launch discipline."),
+            ("I can explain how our work connects to business outcomes that matter.", "They connect day-to-day work to real business value.", "They ensure work ties to measurable business outcomes."),
+            ("I use data and dashboards to inform decisions, not just gut feel.", "They use data to guide decisions rather than just opinions.", "They demonstrate data-driven decision making."),
+            ("I encourage the team to back up ideas with evidence.", "They promote a culture where we test ideas with data.", "They foster an evidence-based team culture.")
         ],
         "Governance & Ways of Working": [
-            ("I operate within governance efficiently.", "This PO operates within governance.", "This PO balances governance and flow."),
-            ("I ensure compliance considerations early.", "This PO includes compliance early.", "This PO demonstrates compliance awareness."),
-            ("I document key decisions.", "This PO documents decisions well.", "This PO ensures decision auditability."),
-            ("I apply operating model norms.", "This PO follows operating norms.", "This PO demonstrates model adherence."),
-            ("I help institutionalize best practices.", "This PO shares best practices.", "This PO drives practice improvement.")
+            ("I work within our processes efficiently without letting them slow us down too much.", "They work within company processes without getting bogged down.", "They balance governance requirements with team velocity."),
+            ("I think about compliance and risk early, not as an afterthought.", "They bring up compliance considerations before they become problems.", "They demonstrate proactive compliance awareness."),
+            ("I document important decisions so there's a clear record of why we chose what we did.", "They document key decisions so we can look back and understand why.", "They ensure decision auditability."),
+            ("I follow our team's agreed ways of working.", "They follow team norms and operating agreements.", "They consistently adhere to operating model standards."),
+            ("When I find something that works well, I help share it so others can benefit.", "They share what works so other teams can learn too.", "They help institutionalize best practices across teams.")
         ]
+    }
+    
+    # More helpful, personable guidance text for each dimension
+    help_texts = {
+        "Strategy & Outcomes": "Think about how well you communicate direction and connect work to meaningful results. Do people understand where you're headed and why?",
+        "Customer & Discovery": "Consider how often you engage with actual users and whether you validate assumptions before committing to solutions.",
+        "Backlog & Prioritization": "Reflect on the clarity and organization of your backlog. Is it easy for the team to understand what's important and why?",
+        "Delivery Partnership": "Think about your collaboration with engineering, design, and other teams. Are you a true partner in delivery?",
+        "Stakeholder Management": "Consider how you build relationships and handle competing interests. Do stakeholders trust you?",
+        "Execution & Reliability": "Reflect on your track record of delivering on commitments and helping the team stay focused.",
+        "Data & Metrics": "Think about how you use data to inform decisions and measure success.",
+        "Governance & Ways of Working": "Consider how you balance following processes with getting things done efficiently."
     }
     
     for dim in dimensions:
@@ -1253,7 +1265,7 @@ async def seed_demo_data():
                 text_partner=partner_text,
                 text_manager=manager_text,
                 order=i + 1,
-                help_text=f"Rate based on observed behavior and outcomes in {dim['name'].lower()}."
+                help_text=help_texts.get(dim['name'], f"Think about your experience in {dim['name'].lower()}.")
             )
             await db.questions.insert_one(q.model_dump())
     
