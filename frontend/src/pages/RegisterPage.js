@@ -22,7 +22,7 @@ const RegisterPage = () => {
 
   const roles = [
     { value: 'ProductOwner', label: 'Product Owner', description: 'Complete self-assessments' },
-    { value: 'BusinessPartner', label: 'Business Partner', description: 'Assess assigned POs' },
+    { value: 'AgileCoach', label: 'Agile Coach', description: 'Assess assigned POs' },
     { value: 'Manager', label: 'Manager', description: 'Assess and view team scorecards' },
     { value: 'ExecViewer', label: 'Executive Viewer', description: 'View organization dashboards' },
     { value: 'Admin', label: 'Admin', description: 'Full access to manage assessments' }
@@ -181,7 +181,7 @@ const RegisterPage = () => {
           </h2>
           <ul className="space-y-4">
             {[
-              'Multi-perspective assessments (Self, Partner, Manager)',
+              'Multi-perspective assessments (Self, Coach, Manager)',
               '8 dimensions of PO competency',
               'Executive-ready scorecards and heatmaps',
               'Alignment analysis and coaching recommendations',

@@ -176,7 +176,7 @@ const ExecutivePage = () => {
           <div className="glass-card p-6 kpi-tile">
             <div className="flex items-center gap-2 mb-2">
               <Users className="w-4 h-4 text-sky-600" />
-              <span className="text-sm text-slate-500">Partner Avg</span>
+              <span className="text-sm text-slate-500">Coach Avg</span>
             </div>
             <div className="text-3xl font-heading font-bold text-slate-900">
               {summary?.avg_partner?.toFixed(1) || '—'}
@@ -249,7 +249,7 @@ const ExecutivePage = () => {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-sky-500" />
-                <span className="text-sm text-slate-600">Partner</span>
+                <span className="text-sm text-slate-600">Coach</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-violet-500" />
@@ -261,13 +261,13 @@ const ExecutivePage = () => {
           {/* Scatter Plot */}
           <div className="glass-card p-6">
             <h2 className="font-heading text-lg font-semibold text-slate-900 mb-6">
-              Perception Delta (Self vs Partner)
+              Perception Delta (Self vs Coach)
             </h2>
             <div className="h-80">
               <ScatterChart data={scatterData} />
             </div>
             <p className="text-sm text-slate-500 text-center mt-4">
-              Points above the line: Self &gt; Partner perception
+              Points above the line: Self &gt; Coach perception
             </p>
           </div>
         </div>
@@ -346,7 +346,7 @@ const ExecutivePage = () => {
                   <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Name</th>
                   <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Team</th>
                   <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Self</th>
-                  <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Partner</th>
+                  <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Coach</th>
                   <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Manager</th>
                   <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Alignment</th>
                   <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Growth</th>

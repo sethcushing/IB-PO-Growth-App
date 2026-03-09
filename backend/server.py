@@ -38,14 +38,14 @@ logger = logging.getLogger(__name__)
 # ============ ENUMS ============
 class UserRole(str, Enum):
     PRODUCT_OWNER = "ProductOwner"
-    BUSINESS_PARTNER = "BusinessPartner"
+    AGILE_COACH = "AgileCoach"
     MANAGER = "Manager"
     EXEC_VIEWER = "ExecViewer"
     ADMIN = "Admin"
 
 class RaterType(str, Enum):
     SELF = "Self"
-    PARTNER = "Partner"
+    COACH = "Coach"
     MANAGER = "Manager"
 
 class CycleStatus(str, Enum):
@@ -111,7 +111,7 @@ class Question(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     dimension_id: str
     text_self: str
-    text_partner: str
+    text_coach: str
     text_manager: str
     active: bool = True
     order: int
@@ -365,7 +365,7 @@ async def get_my_assignments(current_user: Dict = Depends(get_current_user)):
                 "cycle_id": cycle['id'],
                 "po_id": assgn['po_id'],
                 "rater_user_id": user_id,
-                "rater_type": RaterType.PARTNER.value
+                "rater_type": RaterType.COACH.value
             }, {"_id": 0})
             
             assignments.append({
@@ -502,7 +502,7 @@ async def get_response(cycle_id: str, po_id: str, current_user: Dict = Depends(g
     if role == UserRole.PRODUCT_OWNER.value:
         rater_type = RaterType.SELF.value
     elif role == UserRole.BUSINESS_PARTNER.value:
-        rater_type = RaterType.PARTNER.value
+        rater_type = RaterType.COACH.value
     elif role == UserRole.MANAGER.value:
         rater_type = RaterType.MANAGER.value
     else:
@@ -535,7 +535,7 @@ async def get_response_full(cycle_id: str, po_id: str, rater_type: Optional[str]
     elif role == UserRole.PRODUCT_OWNER.value:
         target_rater_type = RaterType.SELF.value
     elif role == UserRole.BUSINESS_PARTNER.value:
-        target_rater_type = RaterType.PARTNER.value
+        target_rater_type = RaterType.COACH.value
     elif role == UserRole.MANAGER.value:
         target_rater_type = RaterType.MANAGER.value
     else:
@@ -602,7 +602,7 @@ async def compute_scorecard(cycle_id: str, po_id: str):
     }, {"_id": 0}).to_list(100)
     
     self_response = next((r for r in responses if r['rater_type'] == RaterType.SELF.value), None)
-    partner_responses = [r for r in responses if r['rater_type'] == RaterType.PARTNER.value]
+    partner_responses = [r for r in responses if r['rater_type'] == RaterType.COACH.value]
     manager_response = next((r for r in responses if r['rater_type'] == RaterType.MANAGER.value), None)
     
     # Get PO info
@@ -1258,11 +1258,11 @@ async def seed_demo_data():
     
     for dim in dimensions:
         qs = questions_by_dim.get(dim['name'], [])
-        for i, (self_text, partner_text, manager_text) in enumerate(qs):
+        for i, (self_text, coach_text, manager_text) in enumerate(qs):
             q = Question(
                 dimension_id=dim['id'],
                 text_self=self_text,
-                text_partner=partner_text,
+                text_coach=coach_text,
                 text_manager=manager_text,
                 order=i + 1,
                 help_text=help_texts.get(dim['name'], f"Think about your experience in {dim['name'].lower()}.")
@@ -1407,7 +1407,7 @@ async def seed_demo_data():
         bp = User(
             email=f"{name.lower().replace(' ', '.')}@company.com",
             name=name,
-            role=UserRole.BUSINESS_PARTNER,
+            role=UserRole.AGILE_COACH,
             org_unit=dept,
             team=dept,
             title=f"{dept} Lead"
@@ -1509,7 +1509,7 @@ async def seed_demo_data():
                 "cycle_id": cycle_q4.id,
                 "po_id": po['id'],
                 "rater_user_id": partner['id'],
-                "rater_type": RaterType.PARTNER.value,
+                "rater_type": RaterType.COACH.value,
                 "items": partner_items,
                 "completion_pct": 100,
                 "is_draft": False,
@@ -1578,7 +1578,7 @@ async def seed_demo_data():
                     "cycle_id": cycle.id,
                     "po_id": po['id'],
                     "rater_user_id": partner['id'],
-                    "rater_type": RaterType.PARTNER.value,
+                    "rater_type": RaterType.COACH.value,
                     "items": generate_scores(0),
                     "completion_pct": 100,
                     "is_draft": False,
@@ -1624,7 +1624,7 @@ async def seed_demo_data():
             {"email": "exec@company.com", "password": "demo123", "role": "ExecViewer"},
             {"email": "james.chen@company.com", "password": "demo123", "role": "Manager - has pending assessments"},
             {"email": "alex.johnson@company.com", "password": "demo123", "role": "ProductOwner - has pending self-assessment"},
-            {"email": "lisa.wang@company.com", "password": "demo123", "role": "BusinessPartner - has pending partner assessments"}
+            {"email": "lisa.wang@company.com", "password": "demo123", "role": "AgileCoach - has pending coach assessments"}
         ],
         "pending_assessments": "First 3 POs have pending self-assessments, first 6 POs have pending partner/manager assessments"
     }

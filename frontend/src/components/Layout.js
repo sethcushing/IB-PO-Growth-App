@@ -30,7 +30,7 @@ const Layout = ({ children }) => {
       label: 'Dashboard', 
       icon: Home, 
       path: '/dashboard',
-      roles: ['ProductOwner', 'BusinessPartner', 'Manager', 'ExecViewer', 'Admin']
+      roles: ['ProductOwner', 'AgileCoach', 'Manager', 'ExecViewer', 'Admin']
     },
     { 
       label: 'My Growth', 

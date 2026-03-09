@@ -79,7 +79,7 @@ const ScatterChart = ({ data }) => {
       y: {
         title: {
           display: true,
-          text: 'Partner Avg Score',
+          text: 'Coach Avg Score',
           font: {
             family: "'Plus Jakarta Sans', sans-serif",
             size: 12,
@@ -127,7 +127,7 @@ const ScatterChart = ({ data }) => {
             if (!point.name) return null;
             return [
               `Self: ${point.x?.toFixed(1) || '—'}`,
-              `Partner: ${point.y?.toFixed(1) || '—'}`,
+              `Coach: ${point.y?.toFixed(1) || '—'}`,
               `Manager: ${point.manager?.toFixed(1) || '—'}`
             ];
           }

@@ -43,7 +43,7 @@ const RadarChart = ({ data }) => {
         pointHoverBorderColor: 'rgba(132, 204, 22, 1)'
       },
       {
-        label: 'Partner',
+        label: 'Coach',
         data: data.map(d => d.partner),
         backgroundColor: 'rgba(14, 165, 233, 0.2)',
         borderColor: 'rgba(14, 165, 233, 1)',

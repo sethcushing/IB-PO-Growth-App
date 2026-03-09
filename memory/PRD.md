@@ -25,7 +25,7 @@ Build an internal Product Owner growth assessment tool measuring PO capabilities
 2. **ExecViewer** - Read-only dashboards across org
 3. **Manager** - Assess assigned POs, view team scorecards
 4. **ProductOwner** - Complete self-assessment, view own scorecard
-5. **BusinessPartner** - Complete partner assessments for assigned POs
+5. **AgileCoach** - Complete coach assessments for assigned POs
 
 ## Core Requirements
 - 8 dimensions with weighted scoring (sum = 100)
@@ -70,7 +70,7 @@ Build an internal Product Owner growth assessment tool measuring PO capabilities
 - **ExecViewer**: exec@company.com / demo123
 - **Manager**: james.chen@company.com / demo123
 - **ProductOwner**: alex.johnson@company.com / demo123
-- **BusinessPartner**: lisa.wang@company.com / demo123
+- **AgileCoach**: lisa.wang@company.com / demo123
 
 ## Prioritized Backlog
 

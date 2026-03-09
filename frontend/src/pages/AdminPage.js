@@ -197,7 +197,7 @@ const AdminPage = () => {
                             </span>
                             <span className="flex items-center gap-1">
                               <span className="w-2 h-2 bg-sky-500 rounded-full" />
-                              Partner
+                              Coach
                             </span>
                             <span className="flex items-center gap-1">
                               <span className="w-2 h-2 bg-violet-500 rounded-full" />
@@ -270,7 +270,7 @@ const AdminPage = () => {
                 <div className="p-4 bg-slate-50 rounded-lg">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-medium text-slate-900">Anonymous Partner Feedback</h3>
+                      <h3 className="font-medium text-slate-900">Anonymous Coach Feedback</h3>
                       <p className="text-sm text-slate-600">Hide partner identity from PO scorecards</p>
                     </div>
                     <Badge className="bg-lime-100 text-lime-700">Enabled</Badge>

@@ -35,7 +35,7 @@ const LoginPage = () => {
     { email: 'exec@company.com', role: 'ExecViewer' },
     { email: 'james.chen@company.com', role: 'Manager' },
     { email: 'alex.johnson@company.com', role: 'ProductOwner' },
-    { email: 'lisa.wang@company.com', role: 'BusinessPartner' }
+    { email: 'lisa.wang@company.com', role: 'AgileCoach' }
   ];
 
   const handleDemoLogin = (demoEmail) => {
@@ -183,7 +183,7 @@ const LoginPage = () => {
                 </div>
                 <div>
                   <div className="text-2xl font-heading font-semibold text-sky-400">74</div>
-                  <div className="text-xs text-slate-500">Partner</div>
+                  <div className="text-xs text-slate-500">Agile Coach</div>
                 </div>
                 <div>
                   <div className="text-2xl font-heading font-semibold text-violet-400">75</div>

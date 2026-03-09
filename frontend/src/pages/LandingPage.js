@@ -40,7 +40,7 @@ const LandingPage = () => {
     { email: 'exec@company.com', role: 'ExecViewer', description: 'View dashboards' },
     { email: 'james.chen@company.com', role: 'Manager', description: 'Team view' },
     { email: 'alex.johnson@company.com', role: 'ProductOwner', description: 'Self-assessment' },
-    { email: 'lisa.wang@company.com', role: 'BusinessPartner', description: 'Partner feedback' }
+    { email: 'lisa.wang@company.com', role: 'AgileCoach', description: 'Coach feedback' }
   ];
 
   const handleDemoLogin = (demoEmail) => {

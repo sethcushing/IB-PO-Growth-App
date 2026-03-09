@@ -136,7 +136,7 @@ const DashboardPage = () => {
               {user?.role === 'ExecViewer' && 'View organization dashboards and growth metrics'}
               {user?.role === 'Manager' && 'Complete assessments and view team progress'}
               {user?.role === 'ProductOwner' && 'Complete your assessment and track your growth'}
-              {user?.role === 'BusinessPartner' && 'Provide feedback for your Product Owners'}
+              {user?.role === 'AgileCoach' && 'Provide feedback for your Product Owners'}
             </p>
           </div>
           

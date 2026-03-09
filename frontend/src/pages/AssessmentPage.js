@@ -55,7 +55,7 @@ const AssessmentPage = () => {
   // Determine rater type based on user role
   const getRaterType = () => {
     if (user?.role === 'ProductOwner') return 'Self';
-    if (user?.role === 'BusinessPartner') return 'Partner';
+    if (user?.role === 'AgileCoach') return 'Coach';
     if (user?.role === 'Manager') return 'Manager';
     return 'Self';
   };
@@ -195,7 +195,7 @@ const AssessmentPage = () => {
 
   const getQuestionText = (question) => {
     if (raterType === 'Self') return question.text_self;
-    if (raterType === 'Partner') return question.text_partner;
+    if (raterType === 'Coach') return question.text_coach;
     return question.text_manager;
   };
 

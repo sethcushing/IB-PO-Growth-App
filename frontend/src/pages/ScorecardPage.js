@@ -66,7 +66,7 @@ const getCoachingRecommendations = (dimensionScores) => {
         title: `Alignment Gap: ${ds.dimension_name}`,
         description: delta > 0 
           ? `Your self-assessment is higher than partner feedback. Consider seeking more specific feedback and identifying blind spots.`
-          : `Partners rate you higher than you rate yourself. Recognize your strengths and communicate your value more confidently.`,
+          : `Coaches rate you higher than you rate yourself. Recognize your strengths and communicate your value more confidently.`,
         icon: Users
       });
     }
@@ -370,7 +370,7 @@ const ScorecardPage = () => {
               <div className="w-10 h-10 bg-sky-100 rounded-lg flex items-center justify-center">
                 <Users className="w-5 h-5 text-sky-600" />
               </div>
-              <span className="text-sm text-slate-500">Partner Avg</span>
+              <span className="text-sm text-slate-500">Coach Avg</span>
             </div>
             <div className="text-4xl font-heading font-bold text-slate-900">
               {scorecard.overall_partner_avg?.toFixed(1) || '—'}
@@ -418,7 +418,7 @@ const ScorecardPage = () => {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-sky-500" />
-                <span className="text-sm text-slate-600">Partner</span>
+                <span className="text-sm text-slate-600">Coach</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-violet-500" />
@@ -459,7 +459,7 @@ const ScorecardPage = () => {
                             <span className="font-mono text-sm">{ds.partner_avg_score?.toFixed(0) || '—'}</span>
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent>Partner Average</TooltipContent>
+                        <TooltipContent>Coach Average</TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                     <DeltaChip value={ds.delta_self_partner} />
@@ -499,7 +499,7 @@ const ScorecardPage = () => {
                     <div className="text-2xl font-heading font-bold text-sky-600">
                       {ds.partner_avg_score?.toFixed(0) || '—'}
                     </div>
-                    <div className="text-xs text-slate-500">Partner</div>
+                    <div className="text-xs text-slate-500">Coach</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-heading font-bold text-violet-600">
