@@ -81,19 +81,19 @@ const getCoachingRecommendations = (dimensionScores) => {
 
 const getRecommendationText = (dimension, level) => {
   const recommendations = {
-    'Strategy & Outcomes': {
+    'Strategy': {
       low: 'Start by documenting a clear product vision. Schedule regular alignment sessions with stakeholders to validate strategic direction.',
       medium: 'Strengthen your outcome-based roadmapping. Connect features to measurable business results.'
     },
-    'Customer & Discovery': {
+    'Customer': {
       low: 'Prioritize direct customer engagement. Set up regular user interviews and establish a research rhythm.',
       medium: 'Expand your discovery toolkit. Consider job-to-be-done frameworks and experiment with rapid prototyping.'
     },
-    'Backlog & Prioritization': {
+    'Backlog': {
       low: 'Implement a consistent prioritization framework (RICE, WSJF). Focus on backlog hygiene and clear acceptance criteria.',
       medium: 'Refine your prioritization approach. Involve stakeholders in tradeoff discussions to build alignment.'
     },
-    'Delivery Partnership': {
+    'Delivery': {
       low: 'Strengthen collaboration with engineering. Attend standups, participate in technical discussions, and build trust.',
       medium: 'Deepen cross-functional partnerships. Consider pairing sessions with design and engineering leads.'
     },
@@ -101,17 +101,13 @@ const getRecommendationText = (dimension, level) => {
       low: 'Map your stakeholders and their needs. Establish regular communication cadences and proactive updates.',
       medium: 'Enhance your influence skills. Practice handling conflict and building consensus across groups.'
     },
-    'Execution & Reliability': {
+    'Execution': {
       low: 'Focus on commitment reliability. Break work into smaller increments and improve estimation accuracy.',
       medium: 'Strengthen sprint discipline. Implement better blockers management and escalation processes.'
     },
-    'Data & Metrics': {
+    'Data': {
       low: 'Define success metrics for your products. Set up basic dashboards to track key outcomes.',
       medium: 'Deepen your data-driven approach. Run more A/B tests and use analytics to guide decisions.'
-    },
-    'Governance & Ways of Working': {
-      low: 'Familiarize yourself with organizational processes. Document key decisions and ensure compliance awareness.',
-      medium: 'Streamline governance processes. Help establish best practices that balance compliance with agility.'
     }
   };
   
