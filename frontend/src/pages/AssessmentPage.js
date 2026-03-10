@@ -296,7 +296,10 @@ const AssessmentPage = () => {
             return (
               <button
                 key={dim.id}
-                onClick={() => setCurrentDimensionIndex(index)}
+                onClick={() => {
+                  setCurrentDimensionIndex(index);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
                 className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   index === currentDimensionIndex
                     ? 'bg-lime-600 text-white'
@@ -422,7 +425,10 @@ const AssessmentPage = () => {
         {/* Navigation */}
         <div className="flex items-center justify-between pt-6 border-t border-slate-200">
           <Button
-            onClick={() => setCurrentDimensionIndex(prev => Math.max(0, prev - 1))}
+            onClick={() => {
+              setCurrentDimensionIndex(prev => Math.max(0, prev - 1));
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
             disabled={currentDimensionIndex === 0}
             variant="outline"
             data-testid="prev-dimension-btn"
@@ -433,7 +439,10 @@ const AssessmentPage = () => {
 
           {currentDimensionIndex < dimensions.length - 1 ? (
             <Button
-              onClick={() => setCurrentDimensionIndex(prev => prev + 1)}
+              onClick={() => {
+                setCurrentDimensionIndex(prev => prev + 1);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
               className="bg-lime-600 hover:bg-lime-700 text-white"
               data-testid="next-dimension-btn"
             >
