@@ -1165,15 +1165,16 @@ async def seed_demo_data():
     await db.responses.delete_many({})
     await db.scorecards.delete_many({})
     
-    # Create dimensions with weights (sum = 100) - Updated to 7 dimensions
+    # Create dimensions with weights (sum = 100) - 8 dimensions
     dimensions_data = [
-        {"name": "Strategy", "description": "Product vision, roadmap, and strategic alignment", "weight": 15, "order": 1},
-        {"name": "Customer", "description": "User research, validation, and empathy", "weight": 15, "order": 2},
-        {"name": "Backlog", "description": "Backlog health, prioritization methods", "weight": 14, "order": 3},
-        {"name": "Delivery", "description": "Collaboration with Eng/Design/Data", "weight": 14, "order": 4},
-        {"name": "Stakeholder Management", "description": "Communication, influence, alignment", "weight": 14, "order": 5},
-        {"name": "Execution", "description": "Commitment delivery, continuous improvement", "weight": 14, "order": 6},
-        {"name": "Data", "description": "Success metrics, evidence-based decisions", "weight": 14, "order": 7}
+        {"name": "Strategy", "description": "Product vision, roadmap, and strategic alignment", "weight": 13, "order": 1},
+        {"name": "Customer", "description": "User research, validation, and empathy", "weight": 13, "order": 2},
+        {"name": "Backlog", "description": "Backlog health, prioritization methods", "weight": 12, "order": 3},
+        {"name": "Delivery", "description": "Collaboration with Eng/Design/Data", "weight": 12, "order": 4},
+        {"name": "Stakeholder Management", "description": "Communication, influence, alignment", "weight": 12, "order": 5},
+        {"name": "Execution", "description": "Commitment delivery, continuous improvement", "weight": 12, "order": 6},
+        {"name": "Data", "description": "Success metrics, evidence-based decisions", "weight": 13, "order": 7},
+        {"name": "Governance", "description": "Compliance, risk management, and documentation", "weight": 13, "order": 8}
     ]
     
     dimensions = []
@@ -1183,7 +1184,7 @@ async def seed_demo_data():
         await db.dimensions.insert_one(dim_dict)
         dimensions.append(dim_dict)
     
-    # Create questions - Updated from document
+    # Create questions - 20 total
     questions_by_dim = {
         "Strategy": [
             ("I can clearly explain our product vision and how we'll know if we're successful.", "They clearly share where the product is headed and what success looks like.", "They paint a clear picture of the product vision and tie it to real outcomes."),
@@ -1215,6 +1216,11 @@ async def seed_demo_data():
             ("Before we start building, I define how we'll measure success.", "They think about success metrics before the team starts building.", "They ensure metrics are defined upfront."),
             ("After we launch something, I check how it's performing and share what we learned.", "They follow up after launches to see how things are actually doing.", "They demonstrate strong post-launch discipline."),
             ("I can explain how our work connects to business outcomes that matter.", "They connect day-to-day work to real business value.", "They ensure work ties to measurable business outcomes.")
+        ],
+        "Governance": [
+            ("I work within our processes efficiently without letting them slow us down too much.", "They work within company processes without getting bogged down.", "They balance governance requirements with team velocity."),
+            ("I think about compliance and risk early, not as an afterthought.", "They bring up compliance considerations before they become problems.", "They demonstrate proactive compliance awareness."),
+            ("I document important decisions so there's a clear record of why we chose what we did.", "They document key decisions so we can look back and understand why.", "They ensure decision auditability.")
         ]
     }
     
@@ -1226,7 +1232,8 @@ async def seed_demo_data():
         "Delivery": "Think about your collaboration with engineering, design, and other teams. Are you a true partner in delivery?",
         "Stakeholder Management": "Consider how you build relationships and handle competing interests. Do stakeholders trust you?",
         "Execution": "Reflect on your track record of delivering on commitments and helping the team stay focused.",
-        "Data": "Think about how you use data to inform decisions and measure success."
+        "Data": "Think about how you use data to inform decisions and measure success.",
+        "Governance": "Consider how you balance following processes with getting things done efficiently. Do you think about compliance and documentation proactively?"
     }
     
     for dim in dimensions:

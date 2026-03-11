@@ -108,6 +108,10 @@ const getRecommendationText = (dimension, level) => {
     'Data': {
       low: 'Define success metrics for your products. Set up basic dashboards to track key outcomes.',
       medium: 'Deepen your data-driven approach. Run more A/B tests and use analytics to guide decisions.'
+    },
+    'Governance': {
+      low: 'Familiarize yourself with organizational processes. Document key decisions and ensure compliance awareness.',
+      medium: 'Streamline governance processes. Help establish best practices that balance compliance with agility.'
     }
   };
   
