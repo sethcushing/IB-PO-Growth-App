@@ -162,7 +162,7 @@ const Layout = ({ children }) => {
       {/* Overlay */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-30 lg:hidden"
+          className="fixed inset-0 bg-slate-900/30 z-30 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
