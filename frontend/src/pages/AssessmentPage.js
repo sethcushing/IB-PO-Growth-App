@@ -42,7 +42,6 @@ const AssessmentPage = () => {
   const { user } = useAuth();
   
   const [dimensions, setDimensions] = useState([]);
-  const [currentDimensionIndex, setCurrentDimensionIndex] = useState(0);
   const [responses, setResponses] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -107,7 +106,6 @@ const AssessmentPage = () => {
     }
   };
 
-  const currentDimension = dimensions[currentDimensionIndex];
   const totalQuestions = dimensions.reduce((sum, d) => sum + (d.questions?.length || 0), 0);
   const answeredQuestions = Object.values(responses).filter(r => r.score !== null && r.score !== undefined).length;
   const progress = totalQuestions > 0 ? (answeredQuestions / totalQuestions) * 100 : 0;
@@ -285,179 +283,142 @@ const AssessmentPage = () => {
           <Progress value={progress} className="h-2" />
         </div>
 
-        {/* Dimension Navigation */}
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          {dimensions.map((dim, index) => {
+        {/* All Dimensions - Single Scrollable View */}
+        <div className="space-y-10">
+          {dimensions.map((dim, dimIndex) => {
             const dimQuestions = dim.questions || [];
             const dimAnswered = dimQuestions.filter(q => responses[q.id]?.score != null).length;
             const isComplete = dimAnswered === dimQuestions.length;
             const dimScore = isViewMode ? getDimensionScore(dim) : null;
 
             return (
-              <button
-                key={dim.id}
-                onClick={() => {
-                  setCurrentDimensionIndex(index);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  index === currentDimensionIndex
-                    ? 'bg-lime-600 text-white'
-                    : isComplete
-                    ? 'bg-lime-100 text-lime-700'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-                data-testid={`dimension-nav-${index}`}
-              >
-                <div className="flex items-center gap-2">
-                  {isComplete && <CheckCircle2 className="w-3 h-3" />}
-                  <span>{dim.name.split(' ')[0]}</span>
-                  {isViewMode && dimScore != null && (
-                    <span className="ml-1 text-xs opacity-75">({dimScore.toFixed(0)})</span>
-                  )}
+              <div key={dim.id} className="space-y-6" id={`dimension-${dimIndex}`}>
+                {/* Dimension Header */}
+                <div className="glass-card p-6 sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-l-4 border-l-lime-500">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <span className="flex-shrink-0 w-10 h-10 bg-lime-100 rounded-full flex items-center justify-center text-lg font-bold text-lime-700">
+                        {dimIndex + 1}
+                      </span>
+                      <div>
+                        <h2 className="font-heading text-xl font-semibold text-slate-900">
+                          {dim.name}
+                        </h2>
+                        <p className="text-slate-600 text-sm">{dim.description}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {isComplete && (
+                        <span className="px-3 py-1 bg-lime-100 text-lime-700 rounded-full text-sm flex items-center gap-1">
+                          <CheckCircle2 className="w-4 h-4" />
+                          Complete
+                        </span>
+                      )}
+                      <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-sm">
+                        Weight: {dim.weight}%
+                      </span>
+                      {isViewMode && dimScore != null && (
+                        <span className="px-3 py-1 bg-lime-100 text-lime-700 rounded-full text-sm font-medium">
+                          Score: {dimScore.toFixed(1)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </button>
+
+                {/* Questions for this dimension */}
+                <div className="space-y-6 pl-4 border-l-2 border-slate-200 ml-5">
+                  {dimQuestions.map((question, qIndex) => (
+                    <div key={question.id} className="glass-card p-6 space-y-4">
+                      <div className="flex items-start gap-3">
+                        <span className="flex-shrink-0 w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-sm font-medium text-slate-600">
+                          {qIndex + 1}
+                        </span>
+                        <div className="flex-1">
+                          <p className="text-slate-900 font-medium leading-relaxed">
+                            {getQuestionText(question)}
+                          </p>
+                          {question.help_text && (
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <button 
+                                  type="button"
+                                  className="mt-2 flex items-center gap-1.5 text-sm text-lime-600 hover:text-lime-700 transition-colors"
+                                >
+                                  <HelpCircle className="w-4 h-4" />
+                                  <span>What does this mean?</span>
+                                </button>
+                              </PopoverTrigger>
+                              <PopoverContent 
+                                side="bottom" 
+                                align="start"
+                                className="w-80 bg-slate-900 text-white p-4 rounded-xl shadow-xl border-0"
+                              >
+                                <p className="text-sm leading-relaxed">{question.help_text}</p>
+                              </PopoverContent>
+                            </Popover>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Rubric Selector */}
+                      <div className="grid grid-cols-5 gap-3">
+                        {[1, 2, 3, 4, 5].map((score) => (
+                          <button
+                            key={score}
+                            onClick={() => handleScoreChange(question.id, score)}
+                            disabled={isViewMode}
+                            className={`rubric-option ${
+                              responses[question.id]?.score === score ? 'selected' : ''
+                            } ${isViewMode ? 'cursor-default' : ''}`}
+                            data-testid={`rubric-${question.id}-${score}`}
+                          >
+                            <div className="score-badge">{score}</div>
+                            <div className="text-xs font-medium text-slate-700">
+                              {rubricLabels[score].label}
+                            </div>
+                            <div className="text-xs text-slate-500 text-center mt-1 hidden md:block">
+                              {rubricLabels[score].description}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Comment Box */}
+                      <div className="space-y-2">
+                        <label className="text-sm text-slate-600">
+                          Evidence / Example {isViewMode ? '' : '(optional)'}
+                        </label>
+                        <Textarea
+                          value={responses[question.id]?.comment || ''}
+                          onChange={(e) => handleCommentChange(question.id, e.target.value)}
+                          placeholder={isViewMode ? 'No comment provided' : 'Add context or examples to support your rating...'}
+                          className="resize-none"
+                          rows={2}
+                          disabled={isViewMode}
+                          data-testid={`comment-${question.id}`}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             );
           })}
         </div>
 
-        {/* Current Dimension */}
-        {currentDimension && (
-          <div className="space-y-6">
-            <div className="glass-card p-6">
-              <div className="flex items-start justify-between mb-2">
-                <h2 className="font-heading text-xl font-semibold text-slate-900">
-                  {currentDimension.name}
-                </h2>
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-sm">
-                    Weight: {currentDimension.weight}%
-                  </span>
-                  {isViewMode && getDimensionScore(currentDimension) != null && (
-                    <span className="px-3 py-1 bg-lime-100 text-lime-700 rounded-full text-sm font-medium">
-                      Score: {getDimensionScore(currentDimension).toFixed(1)}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <p className="text-slate-600">{currentDimension.description}</p>
-            </div>
-
-            {/* Questions */}
-            <div className="space-y-6">
-              {currentDimension.questions?.map((question, qIndex) => (
-                <div key={question.id} className="glass-card p-6 space-y-4">
-                  <div className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-sm font-medium text-slate-600">
-                      {qIndex + 1}
-                    </span>
-                    <div className="flex-1">
-                      <p className="text-slate-900 font-medium leading-relaxed">
-                        {getQuestionText(question)}
-                      </p>
-                      {question.help_text && (
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <button 
-                              type="button"
-                              className="mt-2 flex items-center gap-1.5 text-sm text-lime-600 hover:text-lime-700 transition-colors"
-                            >
-                              <HelpCircle className="w-4 h-4" />
-                              <span>What does this mean?</span>
-                            </button>
-                          </PopoverTrigger>
-                          <PopoverContent 
-                            side="bottom" 
-                            align="start"
-                            className="w-80 bg-slate-900 text-white p-4 rounded-xl shadow-xl border-0"
-                          >
-                            <p className="text-sm leading-relaxed">{question.help_text}</p>
-                          </PopoverContent>
-                        </Popover>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Rubric Selector */}
-                  <div className="grid grid-cols-5 gap-3">
-                    {[1, 2, 3, 4, 5].map((score) => (
-                      <button
-                        key={score}
-                        onClick={() => handleScoreChange(question.id, score)}
-                        disabled={isViewMode}
-                        className={`rubric-option ${
-                          responses[question.id]?.score === score ? 'selected' : ''
-                        } ${isViewMode ? 'cursor-default' : ''}`}
-                        data-testid={`rubric-${question.id}-${score}`}
-                      >
-                        <div className="score-badge">{score}</div>
-                        <div className="text-xs font-medium text-slate-700">
-                          {rubricLabels[score].label}
-                        </div>
-                        <div className="text-xs text-slate-500 text-center mt-1 hidden md:block">
-                          {rubricLabels[score].description}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Comment Box */}
-                  <div className="space-y-2">
-                    <label className="text-sm text-slate-600">
-                      Evidence / Example {isViewMode ? '' : '(optional)'}
-                    </label>
-                    <Textarea
-                      value={responses[question.id]?.comment || ''}
-                      onChange={(e) => handleCommentChange(question.id, e.target.value)}
-                      placeholder={isViewMode ? 'No comment provided' : 'Add context or examples to support your rating...'}
-                      className="resize-none"
-                      rows={2}
-                      disabled={isViewMode}
-                      data-testid={`comment-${question.id}`}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Navigation */}
+        {/* Submit / Back Buttons */}
         <div className="flex items-center justify-between pt-6 border-t border-slate-200">
           <Button
-            onClick={() => {
-              setCurrentDimensionIndex(prev => Math.max(0, prev - 1));
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            disabled={currentDimensionIndex === 0}
+            onClick={() => navigate('/dashboard')}
             variant="outline"
-            data-testid="prev-dimension-btn"
+            data-testid="back-to-dashboard-btn"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Previous
+            Back to Dashboard
           </Button>
 
-          {currentDimensionIndex < dimensions.length - 1 ? (
-            <Button
-              onClick={() => {
-                setCurrentDimensionIndex(prev => prev + 1);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className="bg-lime-600 hover:bg-lime-700 text-white"
-              data-testid="next-dimension-btn"
-            >
-              Next
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          ) : isViewMode ? (
-            <Button
-              onClick={() => navigate('/dashboard')}
-              variant="outline"
-              data-testid="back-to-dashboard-btn"
-            >
-              Back to Dashboard
-            </Button>
-          ) : (
+          {!isViewMode && (
             <Button
               onClick={handleSubmit}
               disabled={submitting}
@@ -485,7 +446,7 @@ const AssessmentPage = () => {
           <div className="flex items-center gap-3 p-4 bg-slate-50 border border-slate-200 rounded-lg">
             <Eye className="w-5 h-5 text-slate-500 flex-shrink-0" />
             <p className="text-sm text-slate-600">
-              You are viewing a completed assessment. Navigate through dimensions to see all responses and scores.
+              You are viewing a completed assessment. Scroll through all dimensions to see responses and scores.
             </p>
           </div>
         )}
