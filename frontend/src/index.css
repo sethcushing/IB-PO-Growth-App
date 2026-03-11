@@ -216,15 +216,15 @@ code {
 
 /* Rubric option styles */
 .rubric-option {
-    @apply p-3 rounded-xl border border-slate-200 bg-white/80 backdrop-blur transition-all duration-200 flex flex-col items-center gap-2;
+    @apply p-3 rounded-xl border border-slate-200 bg-white transition-all duration-150 flex flex-col items-center gap-2;
 }
 
 .rubric-option:hover:not(:disabled) {
-    @apply border-lime-300 bg-lime-50/50 shadow-sm;
+    @apply border-lime-300 bg-lime-50 shadow-sm;
 }
 
 .rubric-option.selected {
-    @apply border-lime-500 bg-lime-100/80 ring-2 ring-lime-500/20;
+    @apply border-lime-500 bg-lime-100 ring-2 ring-lime-500/20;
 }
 
 .rubric-option .score-badge {

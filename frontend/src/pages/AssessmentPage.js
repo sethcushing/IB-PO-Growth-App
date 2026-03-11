@@ -294,7 +294,7 @@ const AssessmentPage = () => {
             return (
               <div key={dim.id} className="space-y-6" id={`dimension-${dimIndex}`}>
                 {/* Dimension Header */}
-                <div className="glass-card p-6 sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-l-4 border-l-lime-500">
+                <div className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm border-l-4 border-l-lime-500">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-3">
                       <span className="flex-shrink-0 w-10 h-10 bg-lime-100 rounded-full flex items-center justify-center text-lg font-bold text-lime-700">
@@ -327,9 +327,9 @@ const AssessmentPage = () => {
                 </div>
 
                 {/* Questions for this dimension */}
-                <div className="space-y-6 pl-4 border-l-2 border-slate-200 ml-5">
+                <div className="space-y-4 pl-4 border-l-2 border-slate-200 ml-5">
                   {dimQuestions.map((question, qIndex) => (
-                    <div key={question.id} className="glass-card p-6 space-y-4">
+                    <div key={question.id} className="p-5 bg-white border border-slate-200 rounded-xl shadow-sm space-y-4">
                       <div className="flex items-start gap-3">
                         <span className="flex-shrink-0 w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-sm font-medium text-slate-600">
                           {qIndex + 1}
