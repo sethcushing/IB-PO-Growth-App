@@ -8,11 +8,12 @@ FROM node:18-alpine AS frontend-builder
 
 WORKDIR /app/frontend
 
-# Copy package files first for better caching
-COPY frontend/package.json frontend/yarn.lock ./
+# Copy package files (yarn.lock is optional)
+COPY frontend/package.json ./
+COPY frontend/yarn.lock* ./
 
 # Install dependencies
-RUN yarn install --frozen-lockfile --production=false
+RUN yarn install
 
 # Copy frontend source
 COPY frontend/ ./
@@ -46,7 +47,6 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Copy backend code
 COPY backend/server.py ./
-COPY backend/.env.example ./.env.example
 
 # Copy built frontend from Stage 1
 COPY --from=frontend-builder /app/frontend/build ./static
