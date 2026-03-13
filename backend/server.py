@@ -1807,6 +1807,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.on_event("startup")
+async def startup_event():
+    """Auto-seed questions if database is empty"""
+    try:
+        questions_count = await db.questions.count_documents({})
+        if questions_count == 0:
+            print("Database empty - auto-seeding questions...")
+            await seed_demo_data()
+            print("Questions seeded successfully!")
+    except Exception as e:
+        print(f"Auto-seed check failed: {e}")
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
