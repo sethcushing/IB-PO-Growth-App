@@ -1,325 +1,398 @@
 import { useState, useEffect } from 'react';
-import { adminAPI, dimensionsAPI, seedDemoData } from '@/lib/api';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import Layout from '@/components/Layout';
 import {
+  TrendingUp,
   Users,
-  Settings,
-  FileText,
-  RefreshCw,
-  Database,
-  Scale,
-  CheckCircle2
+  BarChart3,
+  Calendar,
+  ArrowLeft,
+  Lock,
+  Eye,
+  Download
 } from 'lucide-react';
 
-const AdminPage = () => {
-  const [users, setUsers] = useState([]);
-  const [dimensions, setDimensions] = useState([]);
-  const [productOwners, setProductOwners] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [seeding, setSeeding] = useState(false);
+const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+const AdminPage = () => {
+  const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+  const [submissions, setSubmissions] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useState(null);
+
+  const handleLogin = () => {
+    // Simple password check - in production, use proper auth
+    if (password === 'admin123') {
+      setIsAuthenticated(true);
+      fetchData();
+    } else {
+      toast.error('Invalid password');
+    }
+  };
 
   const fetchData = async () => {
+    setLoading(true);
     try {
-      const [usersRes, dimensionsRes, posRes] = await Promise.all([
-        adminAPI.getUsers(),
-        dimensionsAPI.getQuestionsByDimension(),
-        adminAPI.getProductOwners()
+      const [submissionsRes, statsRes] = await Promise.all([
+        fetch(`${API_URL}/api/admin/submissions`),
+        fetch(`${API_URL}/api/admin/stats`)
       ]);
-      setUsers(usersRes.data);
-      setDimensions(dimensionsRes.data);
-      setProductOwners(posRes.data);
-    } catch (error) {
-      console.error('Failed to fetch admin data:', error);
+
+      if (submissionsRes.ok) {
+        const data = await submissionsRes.json();
+        setSubmissions(data.submissions || []);
+      }
+
+      if (statsRes.ok) {
+        const data = await statsRes.json();
+        setStats(data);
+      }
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      toast.error('Failed to load data');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSeedDemo = async () => {
-    setSeeding(true);
-    try {
-      const response = await seedDemoData();
-      toast.success('Demo data seeded successfully!', {
-        description: `Created ${response.data.data.product_owners} Product Owners with assessments`
-      });
-      fetchData();
-    } catch (error) {
-      toast.error('Failed to seed demo data');
-    } finally {
-      setSeeding(false);
-    }
+  const getGrowthLevel = (score) => {
+    if (score >= 85) return { level: 'Elite', color: 'bg-lime-600 text-white' };
+    if (score >= 65) return { level: 'Leading', color: 'bg-emerald-100 text-emerald-700' };
+    if (score >= 45) return { level: 'Performing', color: 'bg-lime-100 text-lime-700' };
+    if (score >= 25) return { level: 'Developing', color: 'bg-amber-100 text-amber-700' };
+    return { level: 'Foundational', color: 'bg-slate-100 text-slate-700' };
   };
 
-  const totalWeight = dimensions.reduce((sum, d) => sum + d.weight, 0);
+  const exportCSV = () => {
+    if (submissions.length === 0) {
+      toast.error('No data to export');
+      return;
+    }
 
-  if (loading) {
+    const headers = ['Name', 'Date', 'Overall Score', 'Growth Level', ...submissions[0]?.dimension_scores?.map(d => d.dimension) || []];
+    const rows = submissions.map(s => [
+      s.participant_name,
+      new Date(s.submitted_at).toLocaleDateString(),
+      s.overall_score?.toFixed(1),
+      getGrowthLevel(s.overall_score).level,
+      ...(s.dimension_scores?.map(d => d.score?.toFixed(1)) || [])
+    ]);
+
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `po-growth-assessments-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('CSV exported successfully');
+  };
+
+  // Login screen
+  if (!isAuthenticated) {
     return (
-      <Layout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-pulse text-slate-500">Loading admin console...</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-sm space-y-6">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Lock className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-slate-900">Admin Access</h1>
+            <p className="text-slate-500 mt-1">Enter password to view analytics</p>
+          </div>
+
+          <div className="space-y-4">
+            <Input
+              type="password"
+              placeholder="Enter admin password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+              className="h-12"
+              data-testid="admin-password-input"
+            />
+            <Button
+              onClick={handleLogin}
+              className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white"
+              data-testid="admin-login-btn"
+            >
+              Access Dashboard
+            </Button>
+          </div>
+
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center justify-center gap-2 w-full text-slate-500 hover:text-slate-700"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Assessment
+          </button>
         </div>
-      </Layout>
+      </div>
     );
   }
 
-  return (
-    <Layout>
-      <div className="space-y-8 animate-fade-in">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="font-heading text-3xl font-bold text-slate-900">Admin Console</h1>
-            <p className="text-slate-600 mt-1">Manage questions, dimensions, and assessment settings</p>
-          </div>
-          <Button
-            onClick={handleSeedDemo}
-            disabled={seeding}
-            className="bg-lime-600 hover:bg-lime-700 text-white flex items-center gap-2"
-            data-testid="seed-demo-btn"
-          >
-            <RefreshCw className={`w-4 h-4 ${seeding ? 'animate-spin' : ''}`} />
-            {seeding ? 'Seeding...' : 'Reset & Seed Demo Data'}
-          </Button>
-        </div>
-
-        {/* Stats Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass-card p-6 kpi-tile">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
-                <Users className="w-5 h-5 text-slate-600" />
+  // View individual submission
+  if (selectedSubmission) {
+    const growthInfo = getGrowthLevel(selectedSubmission.overall_score);
+    
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <header className="bg-white border-b border-slate-200 px-6 py-4">
+          <div className="max-w-6xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setSelectedSubmission(null)}
+                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5 text-slate-600" />
+              </button>
+              <div>
+                <h1 className="text-xl font-bold text-slate-900">{selectedSubmission.participant_name}</h1>
+                <p className="text-sm text-slate-500">
+                  Submitted {new Date(selectedSubmission.submitted_at).toLocaleString()}
+                </p>
               </div>
-              <span className="text-sm text-slate-500">Total Users</span>
             </div>
-            <div className="text-4xl font-heading font-bold text-slate-900">
-              {users.length}
-            </div>
+            <span className={`px-3 py-1 rounded-full text-sm font-medium ${growthInfo.color}`}>
+              {growthInfo.level}
+            </span>
           </div>
+        </header>
 
-          <div className="glass-card p-6 kpi-tile">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-lime-100 rounded-lg flex items-center justify-center">
-                <FileText className="w-5 h-5 text-lime-600" />
+        <main className="max-w-6xl mx-auto p-6 space-y-6">
+          {/* Overall Score */}
+          <div className="bg-white border border-slate-200 rounded-xl p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm text-slate-500">Overall Growth Score</div>
+                <div className="text-4xl font-bold text-lime-600">
+                  {selectedSubmission.overall_score?.toFixed(1)}
+                </div>
               </div>
-              <span className="text-sm text-slate-500">Product Owners</span>
-            </div>
-            <div className="text-4xl font-heading font-bold text-slate-900">
-              {productOwners.length}
             </div>
           </div>
 
-          <div className="glass-card p-6 kpi-tile">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-sky-100 rounded-lg flex items-center justify-center">
-                <Database className="w-5 h-5 text-sky-600" />
-              </div>
-              <span className="text-sm text-slate-500">Dimensions</span>
-            </div>
-            <div className="text-4xl font-heading font-bold text-slate-900">
-              {dimensions.length}
-            </div>
-          </div>
-
-          <div className="glass-card p-6 kpi-tile">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center">
-                <Scale className="w-5 h-5 text-violet-600" />
-              </div>
-              <span className="text-sm text-slate-500">Total Weight</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-4xl font-heading font-bold text-slate-900">
-                {totalWeight}
-              </span>
-              {totalWeight === 100 && <CheckCircle2 className="w-6 h-6 text-lime-600" />}
-            </div>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <Tabs defaultValue="dimensions" className="space-y-6">
-          <TabsList className="bg-slate-100 p-1 rounded-lg">
-            <TabsTrigger value="dimensions" className="data-[state=active]:bg-white">
-              Dimensions & Questions
-            </TabsTrigger>
-            <TabsTrigger value="users" className="data-[state=active]:bg-white">
-              Users
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="data-[state=active]:bg-white">
-              Settings
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Dimensions Tab */}
-          <TabsContent value="dimensions" className="space-y-6">
-            {dimensions.map((dim) => (
-              <div key={dim.id} className="glass-card overflow-hidden">
-                <div className="p-6 border-b border-slate-100 bg-slate-50">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-heading text-lg font-semibold text-slate-900">
-                        {dim.name}
-                      </h3>
-                      <p className="text-sm text-slate-600">{dim.description}</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Badge className="bg-lime-100 text-lime-700">
-                        Weight: {dim.weight}%
-                      </Badge>
-                      <Badge variant="secondary">
-                        {dim.questions?.length || 0} questions
-                      </Badge>
-                    </div>
+          {/* Dimension Scores */}
+          <div className="bg-white border border-slate-200 rounded-xl p-6">
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">Dimension Breakdown</h3>
+            <div className="space-y-4">
+              {selectedSubmission.dimension_scores?.map((ds, idx) => (
+                <div key={idx} className="flex items-center gap-4">
+                  <div className="w-40 text-sm font-medium text-slate-700">{ds.dimension}</div>
+                  <div className="flex-1 bg-slate-100 rounded-full h-4 overflow-hidden">
+                    <div 
+                      className="h-full bg-lime-500 rounded-full"
+                      style={{ width: `${ds.score}%` }}
+                    />
+                  </div>
+                  <div className="w-12 text-right font-mono text-sm text-slate-600">
+                    {ds.score?.toFixed(0)}
                   </div>
                 </div>
-                <div className="divide-y divide-slate-100">
-                  {dim.questions?.map((q, i) => (
-                    <div key={q.id} className="p-4 hover:bg-slate-50 transition-colors">
-                      <div className="flex items-start gap-4">
-                        <span className="flex-shrink-0 w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-sm font-medium text-slate-600">
-                          {i + 1}
-                        </span>
-                        <div className="flex-1 space-y-2">
-                          <p className="text-slate-900">{q.text_self}</p>
-                          <div className="flex gap-4 text-xs text-slate-500">
-                            <span className="flex items-center gap-1">
-                              <span className="w-2 h-2 bg-lime-500 rounded-full" />
-                              Self
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <span className="w-2 h-2 bg-sky-500 rounded-full" />
-                              Coach
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <span className="w-2 h-2 bg-violet-500 rounded-full" />
-                              Manager
-                            </span>
-                          </div>
-                        </div>
-                        <Badge variant={q.active ? 'default' : 'secondary'} className={q.active ? 'bg-lime-100 text-lime-700' : ''}>
-                          {q.active ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </TabsContent>
-
-          {/* Users Tab */}
-          <TabsContent value="users">
-            <div className="glass-card overflow-hidden">
-              <div className="p-6 border-b border-slate-100">
-                <h2 className="font-heading text-lg font-semibold text-slate-900">All Users</h2>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Name</th>
-                      <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Email</th>
-                      <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Role</th>
-                      <th className="text-left px-6 py-4 text-sm font-medium text-slate-600">Team</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {users.map((user) => (
-                      <tr key={user.id} className="table-row-hover">
-                        <td className="px-6 py-4">
-                          <span className="font-medium text-slate-900">{user.name}</span>
-                        </td>
-                        <td className="px-6 py-4 text-slate-600">{user.email}</td>
-                        <td className="px-6 py-4">
-                          <Badge 
-                            className={
-                              user.role === 'Admin' ? 'bg-violet-100 text-violet-700' :
-                              user.role === 'Manager' ? 'bg-sky-100 text-sky-700' :
-                              user.role === 'ProductOwner' ? 'bg-lime-100 text-lime-700' :
-                              user.role === 'ExecViewer' ? 'bg-amber-100 text-amber-700' :
-                              'bg-slate-100 text-slate-700'
-                            }
-                          >
-                            {user.role}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-4 text-slate-600">{user.team || '—'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              ))}
             </div>
-          </TabsContent>
+          </div>
 
-          {/* Settings Tab */}
-          <TabsContent value="settings">
-            <div className="glass-card p-6 space-y-6">
-              <h2 className="font-heading text-lg font-semibold text-slate-900">Assessment Settings</h2>
-              
-              <div className="space-y-4">
-                <div className="p-4 bg-slate-50 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-medium text-slate-900">Anonymous Coach Feedback</h3>
-                      <p className="text-sm text-slate-600">Hide partner identity from PO scorecards</p>
-                    </div>
-                    <Badge className="bg-lime-100 text-lime-700">Enabled</Badge>
+          {/* Individual Responses */}
+          <div className="bg-white border border-slate-200 rounded-xl p-6">
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">All Responses</h3>
+            <div className="space-y-4">
+              {selectedSubmission.responses?.map((r, idx) => (
+                <div key={idx} className="p-4 bg-slate-50 rounded-lg">
+                  <div className="flex items-start justify-between gap-4">
+                    <p className="text-sm text-slate-700 flex-1">{r.question_text}</p>
+                    <Badge variant="outline" className="font-mono">
+                      {r.score}/5
+                    </Badge>
                   </div>
+                  {r.comment && (
+                    <p className="mt-2 text-sm text-slate-500 italic">"{r.comment}"</p>
+                  )}
                 </div>
-
-                <div className="p-4 bg-slate-50 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-medium text-slate-900">Executive Comment Access</h3>
-                      <p className="text-sm text-slate-600">Allow ExecViewers to see free-text comments</p>
-                    </div>
-                    <Badge variant="secondary">Disabled</Badge>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-slate-50 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-medium text-slate-900">Manager Identity Visibility</h3>
-                      <p className="text-sm text-slate-600">Show manager identity on PO scorecards</p>
-                    </div>
-                    <Badge className="bg-lime-100 text-lime-700">Enabled</Badge>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-6 border-t border-slate-200">
-                <h3 className="font-medium text-slate-900 mb-4">Growth Levels Configuration</h3>
-                <div className="grid grid-cols-5 gap-3">
-                  {[
-                    { band: 'Foundational', range: '0-24' },
-                    { band: 'Developing', range: '25-44' },
-                    { band: 'Performing', range: '45-64' },
-                    { band: 'Leading', range: '65-84' },
-                    { band: 'Elite', range: '85-100' }
-                  ].map((item) => (
-                    <div key={item.band} className="p-3 bg-slate-50 rounded-lg text-center">
-                      <div className="text-sm font-medium text-slate-900">{item.band}</div>
-                      <div className="text-xs text-slate-500 font-mono">{item.range}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              ))}
             </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+        </main>
       </div>
-    </Layout>
+    );
+  }
+
+  // Main admin dashboard
+  return (
+    <div className="min-h-screen bg-slate-50">
+      {/* Header */}
+      <header className="bg-white border-b border-slate-200 px-6 py-4">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-slate-900">Admin Dashboard</h1>
+              <p className="text-sm text-slate-500">Assessment Analytics</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={exportCSV}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Export CSV
+            </Button>
+            <Button
+              onClick={() => navigate('/')}
+              variant="outline"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto p-6 space-y-6">
+        {/* Stats Cards */}
+        {stats && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-white border border-slate-200 rounded-xl p-5">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-lime-100 rounded-lg flex items-center justify-center">
+                  <Users className="w-5 h-5 text-lime-600" />
+                </div>
+                <span className="text-sm text-slate-500">Total Submissions</span>
+              </div>
+              <div className="text-3xl font-bold text-slate-900">{stats.total_submissions}</div>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-xl p-5">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-lime-100 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 text-lime-600" />
+                </div>
+                <span className="text-sm text-slate-500">Average Score</span>
+              </div>
+              <div className="text-3xl font-bold text-slate-900">{stats.average_score?.toFixed(1) || '—'}</div>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-xl p-5">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-lime-100 rounded-lg flex items-center justify-center">
+                  <BarChart3 className="w-5 h-5 text-lime-600" />
+                </div>
+                <span className="text-sm text-slate-500">Highest Score</span>
+              </div>
+              <div className="text-3xl font-bold text-slate-900">{stats.highest_score?.toFixed(1) || '—'}</div>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-xl p-5">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-lime-100 rounded-lg flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-lime-600" />
+                </div>
+                <span className="text-sm text-slate-500">This Week</span>
+              </div>
+              <div className="text-3xl font-bold text-slate-900">{stats.submissions_this_week || 0}</div>
+            </div>
+          </div>
+        )}
+
+        {/* Growth Level Distribution */}
+        {stats?.level_distribution && (
+          <div className="bg-white border border-slate-200 rounded-xl p-6">
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">Growth Level Distribution</h3>
+            <div className="flex flex-wrap gap-4">
+              {Object.entries(stats.level_distribution).map(([level, count]) => {
+                const info = getGrowthLevel(level === 'Elite' ? 90 : level === 'Leading' ? 70 : level === 'Performing' ? 50 : level === 'Developing' ? 30 : 10);
+                return (
+                  <div key={level} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${info.color}`}>
+                      {level}
+                    </span>
+                    <span className="text-2xl font-bold text-slate-900">{count}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Submissions List */}
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+          <div className="p-6 border-b border-slate-200">
+            <h3 className="text-lg font-semibold text-slate-900">All Submissions</h3>
+          </div>
+          
+          {loading ? (
+            <div className="p-12 text-center">
+              <div className="w-8 h-8 border-4 border-lime-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-slate-500">Loading submissions...</p>
+            </div>
+          ) : submissions.length === 0 ? (
+            <div className="p-12 text-center">
+              <Users className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+              <p className="text-slate-500">No submissions yet</p>
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead className="bg-slate-50">
+                <tr>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-slate-600">Name</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-slate-600">Date</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-slate-600">Score</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-slate-600">Level</th>
+                  <th className="text-right px-6 py-3 text-sm font-medium text-slate-600">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {submissions.map((sub) => {
+                  const growthInfo = getGrowthLevel(sub.overall_score);
+                  return (
+                    <tr key={sub.id} className="hover:bg-slate-50">
+                      <td className="px-6 py-4">
+                        <span className="font-medium text-slate-900">{sub.participant_name}</span>
+                      </td>
+                      <td className="px-6 py-4 text-slate-600">
+                        {new Date(sub.submitted_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="font-mono text-lime-600 font-medium">
+                          {sub.overall_score?.toFixed(1)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${growthInfo.color}`}>
+                          {growthInfo.level}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <Button
+                          onClick={() => setSelectedSubmission(sub)}
+                          variant="ghost"
+                          size="sm"
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          View
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </main>
+    </div>
   );
 };
 

@@ -1149,6 +1149,184 @@ async def export_csv(cycle_id: Optional[str] = None, current_user: Dict = Depend
     
     return {"headers": headers, "rows": rows}
 
+# ============ OPEN ASSESSMENT ENDPOINTS (No Auth Required) ============
+
+class OpenAssessmentSubmission(BaseModel):
+    participant_name: str
+    responses: List[Dict[str, Any]]
+
+@api_router.get("/assessment/questions")
+async def get_assessment_questions():
+    """Get all dimensions and questions for open assessment"""
+    dimensions = await db.dimensions.find({}, {"_id": 0}).sort("order", 1).to_list(100)
+    
+    for dim in dimensions:
+        questions = await db.questions.find(
+            {"dimension_id": dim["id"]}, 
+            {"_id": 0}
+        ).sort("order", 1).to_list(100)
+        dim["questions"] = questions
+    
+    return {"dimensions": dimensions}
+
+@api_router.post("/assessment/submit")
+async def submit_open_assessment(submission: OpenAssessmentSubmission):
+    """Submit an open assessment and calculate scores"""
+    import random
+    
+    # Create submission record
+    submission_id = str(uuid.uuid4())
+    submitted_at = datetime.now(timezone.utc)
+    
+    # Get all questions for scoring
+    questions = await db.questions.find({}, {"_id": 0}).to_list(200)
+    questions_map = {q["id"]: q for q in questions}
+    
+    # Get dimensions
+    dimensions = await db.dimensions.find({}, {"_id": 0}).to_list(100)
+    dim_map = {d["id"]: d for d in dimensions}
+    
+    # Calculate dimension scores
+    dimension_scores = {}
+    for resp in submission.responses:
+        q = questions_map.get(resp["question_id"])
+        if q and resp.get("score"):
+            dim_id = q["dimension_id"]
+            if dim_id not in dimension_scores:
+                dimension_scores[dim_id] = {"scores": [], "dim_name": dim_map.get(dim_id, {}).get("name", "")}
+            dimension_scores[dim_id]["scores"].append(resp["score"])
+    
+    # Calculate averages and overall score
+    dim_results = []
+    total_weighted_score = 0
+    total_weight = 0
+    
+    for dim_id, data in dimension_scores.items():
+        if data["scores"]:
+            avg_score = sum(data["scores"]) / len(data["scores"])
+            # Convert 1-5 scale to 0-100
+            score_100 = (avg_score - 1) / 4 * 100
+            dim_weight = dim_map.get(dim_id, {}).get("weight", 10)
+            
+            dim_results.append({
+                "dimension": data["dim_name"],
+                "dimension_id": dim_id,
+                "score": score_100,
+                "avg_rating": avg_score
+            })
+            
+            total_weighted_score += score_100 * dim_weight
+            total_weight += dim_weight
+    
+    overall_score = total_weighted_score / total_weight if total_weight > 0 else 0
+    
+    # Generate coaching recommendations for low-scoring dimensions
+    recommendations = []
+    coaching_text = {
+        "Strategy": "Focus on articulating a clearer product vision. Practice connecting daily work to measurable outcomes.",
+        "Customer": "Increase direct customer engagement. Set up regular user interviews to validate assumptions.",
+        "Backlog": "Implement a consistent prioritization framework. Regular backlog grooming will improve clarity.",
+        "Delivery": "Strengthen collaboration with engineering and design. Participate more actively in technical discussions.",
+        "Stakeholder Management": "Map your stakeholders and establish regular communication cadences.",
+        "Execution": "Focus on commitment reliability. Break work into smaller increments for better predictability.",
+        "Data": "Define success metrics upfront for new features. Build a habit of reviewing post-launch performance.",
+        "Governance": "Document key decisions proactively. Build compliance considerations into your planning process."
+    }
+    
+    for dr in sorted(dim_results, key=lambda x: x["score"]):
+        if dr["score"] < 60 and len(recommendations) < 3:
+            recommendations.append({
+                "dimension": dr["dimension"],
+                "score": dr["score"],
+                "recommendation": coaching_text.get(dr["dimension"], "Continue developing in this area.")
+            })
+    
+    # Store the submission with responses
+    response_details = []
+    for resp in submission.responses:
+        q = questions_map.get(resp["question_id"])
+        if q:
+            response_details.append({
+                "question_id": resp["question_id"],
+                "question_text": q.get("text_self", ""),
+                "dimension": dim_map.get(q["dimension_id"], {}).get("name", ""),
+                "score": resp.get("score"),
+                "comment": resp.get("comment", "")
+            })
+    
+    submission_doc = {
+        "id": submission_id,
+        "participant_name": submission.participant_name,
+        "submitted_at": submitted_at.isoformat(),
+        "overall_score": overall_score,
+        "dimension_scores": dim_results,
+        "responses": response_details,
+        "recommendations": recommendations
+    }
+    
+    await db.open_submissions.insert_one(submission_doc)
+    
+    return {
+        "submission_id": submission_id,
+        "participant_name": submission.participant_name,
+        "overall_score": overall_score,
+        "dimension_scores": dim_results,
+        "recommendations": recommendations
+    }
+
+@api_router.get("/admin/submissions")
+async def get_admin_submissions():
+    """Get all open assessment submissions for admin view"""
+    submissions = await db.open_submissions.find(
+        {}, 
+        {"_id": 0}
+    ).sort("submitted_at", -1).to_list(1000)
+    
+    return {"submissions": submissions}
+
+@api_router.get("/admin/stats")
+async def get_admin_stats():
+    """Get aggregate statistics for admin dashboard"""
+    submissions = await db.open_submissions.find({}, {"_id": 0}).to_list(1000)
+    
+    if not submissions:
+        return {
+            "total_submissions": 0,
+            "average_score": None,
+            "highest_score": None,
+            "lowest_score": None,
+            "submissions_this_week": 0,
+            "level_distribution": {}
+        }
+    
+    scores = [s["overall_score"] for s in submissions if s.get("overall_score") is not None]
+    
+    # Calculate submissions this week
+    week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+    recent = [s for s in submissions if datetime.fromisoformat(s["submitted_at"].replace('Z', '+00:00')) > week_ago]
+    
+    # Calculate level distribution
+    def get_level(score):
+        if score >= 85: return "Elite"
+        if score >= 65: return "Leading"
+        if score >= 45: return "Performing"
+        if score >= 25: return "Developing"
+        return "Foundational"
+    
+    level_dist = {}
+    for s in submissions:
+        level = get_level(s.get("overall_score", 0))
+        level_dist[level] = level_dist.get(level, 0) + 1
+    
+    return {
+        "total_submissions": len(submissions),
+        "average_score": sum(scores) / len(scores) if scores else None,
+        "highest_score": max(scores) if scores else None,
+        "lowest_score": min(scores) if scores else None,
+        "submissions_this_week": len(recent),
+        "level_distribution": level_dist
+    }
+
 # ============ DEMO DATA SEEDING ============
 @api_router.post("/seed-demo")
 async def seed_demo_data():

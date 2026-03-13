@@ -1,125 +1,73 @@
 # PO Growth App - Product Requirements Document
 
 ## Original Problem Statement
-Build an internal Product Owner growth assessment tool measuring PO capabilities using a 360° feedback model with 3 parallel questionnaires (Self, Business Partner, Manager), Executive Dashboard with visualizations, and role-based access control.
+Build an open-source Product Owner growth assessment tool that allows anyone to take a self-assessment without login. Captures participant name and responses, provides instant results with coaching recommendations, and has a password-protected admin dashboard for analytics.
 
-## User Choices & Evolution
-- JWT authentication with demo accounts
-- Skip PDF exports (CSV only)
-- Chart.js for visualizations
-- No email notifications
-- Auto-seeded demo data for executive POC
-- **Updated**: Changed terminology from "Maturity" to "Growth" throughout
-- **Updated**: Added coaching recommendations to scorecards
-- **Updated**: Made questionnaire language more personable and conversational
-- **Updated**: Changed rubric labels to friendlier options (Not yet, Sometimes, Usually, Often, Always)
+## App Flow
+1. **Landing Page** - Enter name → Start Assessment
+2. **Assessment Page** - Answer 20 questions across 8 dimensions
+3. **Results Page** - See overall score, dimension breakdown, and coaching recommendations
+4. **Admin Page** (/admin) - Password-protected analytics dashboard
 
 ## Architecture
-- **Frontend**: React with Tailwind CSS, Chart.js/react-chartjs-2, shadcn/ui components
-- **Backend**: FastAPI with MongoDB via Motor
-- **Auth**: JWT tokens with bcrypt password hashing
-- **Styling**: Lime green accent, glassmorphism, Lato font
+- **Frontend**: React with Tailwind CSS, shadcn/ui components
+- **Backend**: FastAPI with MongoDB
+- **Auth**: No user auth required; admin uses simple password
 
-## User Personas & Roles (RBAC)
-1. **Admin** - Full access: manage questions, weights, assignments, cycles, exports
-2. **ExecViewer** - Read-only dashboards across org
-3. **Manager** - Assess assigned POs, view team scorecards
-4. **ProductOwner** - Complete self-assessment, view own scorecard
-5. **AgileCoach** - Complete coach assessments for assigned POs
-
-## Core Requirements
-- 8 dimensions with weighted scoring (sum = 100)
-- 40 questions (5 per dimension) with 1-5 rubric scale
-- Growth levels: Foundational (0-24), Developing (25-44), Performing (45-64), Leading (65-84), Elite (85-100)
-- Alignment Index: 100 - avg(absolute deltas)
-- Confidence Score based on partner count and completion
+## Assessment Structure
+- **8 Dimensions**: Strategy, Customer, Backlog, Delivery, Stakeholder Management, Execution, Data, Governance
+- **20 Questions**: 2-3 per dimension
+- **5-Point Scale**: Not yet, Sometimes, Usually, Often, Always
+- **Growth Levels**: Foundational (0-24), Developing (25-44), Performing (45-64), Leading (65-84), Elite (85-100)
 
 ## What's Been Implemented (March 2025)
 
-### Phase 1 - Core Infrastructure
-- [x] Simplified sign-in landing page (internal app)
-- [x] JWT authentication with demo accounts
-- [x] Dashboard with role-based quick actions
-- [x] Assessment questionnaire with rubric selector
-- [x] View completed assessments with scores
-- [x] Individual PO scorecards with radar charts
-- [x] Manager team view
-- [x] Executive dashboard with KPIs, radar, scatter, heatmap
-- [x] Admin console with dimensions/questions/users
-- [x] CSV export
-- [x] Demo data seeding (12 POs, 3 teams, realistic patterns)
-- [x] Historical data viewing with cycle selector
+### Phase 1 - Open Assessment Tool (Completed)
+- [x] Simplified landing page with name capture
+- [x] Single-page scrollable assessment (no tabs)
+- [x] 20 personable, conversational questions
+- [x] Instant results with dimension scores
+- [x] Coaching recommendations based on low-scoring areas
+- [x] Admin dashboard with password protection (admin123)
+- [x] Stats: total submissions, average score, highest score, weekly count
+- [x] Growth level distribution chart
+- [x] CSV export functionality
+- [x] Individual submission detail view
 
-### Phase 2 - UI/UX Overhaul (Completed March 2025)
-- [x] Changed app name to "PO Growth App"
-- [x] Changed "Maturity" terminology to "Growth" throughout
-- [x] Updated GrowthBadge component with TrendingUp icon
-- [x] Enhanced glassmorphism styling
-- [x] Lato font applied globally
+### Performance Optimizations (Completed)
+- [x] Removed all backdrop-blur effects
+- [x] Simplified glassmorphism to solid white cards
+- [x] Removed gradient backgrounds
+- [x] Reduced transition animations
 
-### Phase 3 - Coaching & Personalization (Completed March 2025)
-- [x] Added coaching recommendations to scorecard pages
-- [x] Recommendations based on dimension scores and alignment gaps
-- [x] Updated questionnaire language to be more personable
-- [x] Changed rubric labels: Not yet, Sometimes, Usually, Often, Always
-- [x] Fixed "What does this mean?" popover for question guidance
-- [x] Added helpful, contextual guidance text for each dimension
+## Admin Access
+- URL: /admin
+- Password: admin123
 
-## Demo Accounts
-- **Admin**: admin@company.com / demo123
-- **ExecViewer**: exec@company.com / demo123
-- **Manager**: james.chen@company.com / demo123
-- **ProductOwner**: alex.johnson@company.com / demo123
-- **AgileCoach**: lisa.wang@company.com / demo123
-
-## Prioritized Backlog
-
-### P0 (Critical) - DONE
-- All core flows implemented
-
-### P1 (High)
-- Add ability to create new assessment cycles
-- Assignment management UI for admins
-- Edit dimension weights
-
-### P2 (Medium)
-- Comment visibility toggles
-- Audit logging
-
-### P3 (Low)
-- Email notifications
-- PDF export
-- Historical trend analysis
+## Key API Endpoints
+- `GET /api/assessment/questions` - Get all questions for assessment
+- `POST /api/assessment/submit` - Submit assessment and get results
+- `GET /api/admin/submissions` - Get all submissions (for admin)
+- `GET /api/admin/stats` - Get aggregate statistics
 
 ## File Structure
 ```
 /app/
 ├── backend/
-│   ├── .env
-│   ├── requirements.txt
-│   └── server.py (monolithic API with seeding)
+│   └── server.py (includes open assessment endpoints)
 ├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── MaturityBadge.js (renamed to GrowthBadge)
-│   │   │   ├── Layout.js
-│   │   │   ├── DeltaChip.js
-│   │   │   └── charts/
-│   │   ├── pages/
-│   │   │   ├── LandingPage.js
-│   │   │   ├── DashboardPage.js
-│   │   │   ├── ScorecardPage.js (with coaching recommendations)
-│   │   │   ├── AssessmentPage.js (with personable questions)
-│   │   │   ├── ManagerPage.js
-│   │   │   ├── ExecutivePage.js
-│   │   │   └── AdminPage.js
-│   │   └── index.css (glassmorphism styles)
-│   └── tailwind.config.js
+│   └── src/
+│       ├── App.js (simplified routing)
+│       └── pages/
+│           ├── LandingPage.js (name capture)
+│           ├── AssessmentPage.js (take assessment, view results)
+│           └── AdminPage.js (analytics dashboard)
 └── memory/
     └── PRD.md
 ```
 
-## Next Tasks
-1. Add assignment creation/management in Admin console
-2. Implement audit logging for admin changes
-3. Add comment visibility toggles
+## Future Enhancements
+- Email results to participant
+- Team/organization grouping
+- Comparison reports over time
+- Custom question sets
