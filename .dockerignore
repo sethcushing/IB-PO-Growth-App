@@ -1,0 +1,57 @@
+# Git
+.git
+.gitignore
+
+# Node
+frontend/node_modules
+frontend/.pnp
+frontend/.pnp.js
+frontend/coverage
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+backend/venv
+backend/.venv
+backend/ENV
+*.egg-info
+.eggs
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+frontend/build
+*.log
+
+# Environment files (will be set in Koyeb)
+backend/.env
+frontend/.env
+
+# Memory/docs (not needed in production)
+memory/
+*.md
+!README.md
+
+# Test files
+*.test.js
+*.spec.js
+tests/
+test_reports/

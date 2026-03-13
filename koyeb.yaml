@@ -1,0 +1,33 @@
+name: po-growth-assessment
+type: web
+dockerfile:
+  path: Dockerfile
+regions:
+  - was
+instance_types:
+  - free
+ports:
+  - port: 8000
+    protocol: http
+env:
+  - key: MONGO_URL
+    value: ""
+    secret: true
+  - key: DB_NAME
+    value: po_growth_assessment
+  - key: CORS_ORIGINS
+    value: "*"
+  - key: JWT_SECRET
+    value: ""
+    secret: true
+health_checks:
+  - path: /api/health
+    port: 8000
+    protocol: http
+    interval: 30
+    timeout: 10
+    healthy_threshold: 1
+    unhealthy_threshold: 3
+scaling:
+  min: 1
+  max: 1

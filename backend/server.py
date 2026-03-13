@@ -1810,3 +1810,30 @@ app.add_middleware(
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
+# Serve frontend static files in production
+import os
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+STATIC_DIR = "/app/static"
+
+if os.path.exists(STATIC_DIR):
+    # Serve static assets (JS, CSS, images)
+    app.mount("/static", StaticFiles(directory=f"{STATIC_DIR}/static"), name="static")
+    
+    # Serve frontend for all non-API routes
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        # Don't serve frontend for API routes
+        if full_path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="Not found")
+        
+        # Check if file exists in static directory
+        file_path = os.path.join(STATIC_DIR, full_path)
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            return FileResponse(file_path)
+        
+        # Return index.html for SPA routing
+        return FileResponse(os.path.join(STATIC_DIR, "index.html"))
+
