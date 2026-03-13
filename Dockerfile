@@ -4,7 +4,7 @@
 # ============================================
 # Stage 1: Build React Frontend
 # ============================================
-FROM node:18-alpine AS frontend-builder
+FROM node:20-alpine AS frontend-builder
 
 WORKDIR /app/frontend
 
@@ -12,8 +12,8 @@ WORKDIR /app/frontend
 COPY frontend/package.json ./
 COPY frontend/yarn.lock* ./
 
-# Install dependencies
-RUN yarn install
+# Install dependencies (ignore engine warnings)
+RUN yarn install --ignore-engines
 
 # Copy frontend source
 COPY frontend/ ./
