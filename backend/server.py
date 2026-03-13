@@ -18,9 +18,21 @@ ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 # MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+mongo_url = os.environ.get('MONGO_URL', '')
+db_name = os.environ.get('DB_NAME', 'po_growth_assessment')
+
+if not mongo_url:
+    print("WARNING: MONGO_URL not set. Please set the MONGO_URL environment variable.")
+    # Use a placeholder that will fail gracefully
+    mongo_url = "mongodb://localhost:27017"
+
+try:
+    client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=5000)
+    db = client[db_name]
+    print(f"MongoDB configured with database: {db_name}")
+except Exception as e:
+    print(f"MongoDB connection error: {e}")
+    raise
 
 # JWT Config
 JWT_SECRET = os.environ.get('JWT_SECRET', 'apo-assessment-secret-key-2024')
@@ -1158,16 +1170,26 @@ class OpenAssessmentSubmission(BaseModel):
 @api_router.get("/assessment/questions")
 async def get_assessment_questions():
     """Get all dimensions and questions for open assessment"""
-    dimensions = await db.dimensions.find({}, {"_id": 0}).sort("order", 1).to_list(100)
-    
-    for dim in dimensions:
-        questions = await db.questions.find(
-            {"dimension_id": dim["id"]}, 
-            {"_id": 0}
-        ).sort("order", 1).to_list(100)
-        dim["questions"] = questions
-    
-    return {"dimensions": dimensions}
+    try:
+        dimensions = await db.dimensions.find({}, {"_id": 0}).sort("order", 1).to_list(100)
+        
+        if not dimensions:
+            # Try to seed if empty
+            logger.info("No dimensions found, attempting to seed...")
+            await seed_demo_data()
+            dimensions = await db.dimensions.find({}, {"_id": 0}).sort("order", 1).to_list(100)
+        
+        for dim in dimensions:
+            questions = await db.questions.find(
+                {"dimension_id": dim["id"]}, 
+                {"_id": 0}
+            ).sort("order", 1).to_list(100)
+            dim["questions"] = questions
+        
+        return {"dimensions": dimensions}
+    except Exception as e:
+        logger.error(f"Error fetching questions: {e}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @api_router.post("/assessment/submit")
 async def submit_open_assessment(submission: OpenAssessmentSubmission):
@@ -1795,6 +1817,35 @@ async def root():
 @api_router.get("/health")
 async def health():
     return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
+
+@api_router.get("/debug/db-status")
+async def db_status():
+    """Debug endpoint to check database connection"""
+    try:
+        # Try to ping the database
+        await client.admin.command('ping')
+        
+        # Count documents
+        dimensions_count = await db.dimensions.count_documents({})
+        questions_count = await db.questions.count_documents({})
+        submissions_count = await db.open_submissions.count_documents({})
+        
+        return {
+            "status": "connected",
+            "database": db_name,
+            "collections": {
+                "dimensions": dimensions_count,
+                "questions": questions_count,
+                "open_submissions": submissions_count
+            }
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e),
+            "mongo_url_set": bool(os.environ.get('MONGO_URL')),
+            "db_name": db_name
+        }
 
 # Include router
 app.include_router(api_router)
