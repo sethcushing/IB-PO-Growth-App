@@ -69,7 +69,7 @@ const LandingPage = () => {
             </div>
             <div className="flex items-center gap-3 text-slate-300">
               <CheckCircle2 className="w-5 h-5 text-lime-400" />
-              <span>Get personalized coaching recommendations</span>
+              <span>Input to be utilized for upcoming training</span>
             </div>
           </div>
 
