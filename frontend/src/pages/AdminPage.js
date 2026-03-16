@@ -28,7 +28,7 @@ const AdminPage = () => {
 
   const handleLogin = () => {
     // Simple password check - in production, use proper auth
-    if (password === 'admin123') {
+    if (password === 'admin_password_123!') {
       setIsAuthenticated(true);
       fetchData();
     } else {
@@ -61,7 +61,7 @@ const AdminPage = () => {
     }
   };
 
-  const getGrowthLevel = (score) => {
+  const getJourneyLevel = (score) => {
     if (score >= 85) return { level: 'Elite', color: 'bg-lime-600 text-white' };
     if (score >= 65) return { level: 'Leading', color: 'bg-emerald-100 text-emerald-700' };
     if (score >= 45) return { level: 'Performing', color: 'bg-lime-100 text-lime-700' };
@@ -75,12 +75,12 @@ const AdminPage = () => {
       return;
     }
 
-    const headers = ['Name', 'Date', 'Overall Score', 'Growth Level', ...submissions[0]?.dimension_scores?.map(d => d.dimension) || []];
+    const headers = ['Name', 'Date', 'Overall Score', 'Journey Level', ...submissions[0]?.dimension_scores?.map(d => d.dimension) || []];
     const rows = submissions.map(s => [
       s.participant_name,
       new Date(s.submitted_at).toLocaleDateString(),
       s.overall_score?.toFixed(1),
-      getGrowthLevel(s.overall_score).level,
+      getJourneyLevel(s.overall_score).level,
       ...(s.dimension_scores?.map(d => d.score?.toFixed(1)) || [])
     ]);
 
@@ -89,7 +89,7 @@ const AdminPage = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `po-growth-assessments-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `po-journey-questionnaire-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success('CSV exported successfully');
@@ -132,7 +132,7 @@ const AdminPage = () => {
             className="flex items-center justify-center gap-2 w-full text-slate-500 hover:text-slate-700"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Assessment
+            Back to Questionnaire
           </button>
         </div>
       </div>
@@ -141,7 +141,7 @@ const AdminPage = () => {
 
   // View individual submission
   if (selectedSubmission) {
-    const growthInfo = getGrowthLevel(selectedSubmission.overall_score);
+    const journeyInfo = getJourneyLevel(selectedSubmission.overall_score);
     
     return (
       <div className="min-h-screen bg-slate-50">
@@ -161,8 +161,8 @@ const AdminPage = () => {
                 </p>
               </div>
             </div>
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${growthInfo.color}`}>
-              {growthInfo.level}
+            <span className={`px-3 py-1 rounded-full text-sm font-medium ${journeyInfo.color}`}>
+              {journeyInfo.level}
             </span>
           </div>
         </header>
@@ -172,7 +172,7 @@ const AdminPage = () => {
           <div className="bg-white border border-slate-200 rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm text-slate-500">Overall Growth Score</div>
+                <div className="text-sm text-slate-500">Overall Journey Score</div>
                 <div className="text-4xl font-bold text-lime-600">
                   {selectedSubmission.overall_score?.toFixed(1)}
                 </div>
@@ -237,7 +237,7 @@ const AdminPage = () => {
             </div>
             <div>
               <h1 className="text-xl font-bold text-slate-900">Admin Dashboard</h1>
-              <p className="text-sm text-slate-500">Assessment Analytics</p>
+              <p className="text-sm text-slate-500">Questionnaire Analytics</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -306,13 +306,13 @@ const AdminPage = () => {
           </div>
         )}
 
-        {/* Growth Level Distribution */}
+        {/* Journey Level Distribution */}
         {stats?.level_distribution && (
           <div className="bg-white border border-slate-200 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-slate-900 mb-4">Growth Level Distribution</h3>
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">Journey Level Distribution</h3>
             <div className="flex flex-wrap gap-4">
               {Object.entries(stats.level_distribution).map(([level, count]) => {
-                const info = getGrowthLevel(level === 'Elite' ? 90 : level === 'Leading' ? 70 : level === 'Performing' ? 50 : level === 'Developing' ? 30 : 10);
+                const info = getJourneyLevel(level === 'Elite' ? 90 : level === 'Leading' ? 70 : level === 'Performing' ? 50 : level === 'Developing' ? 30 : 10);
                 return (
                   <div key={level} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${info.color}`}>
@@ -355,7 +355,7 @@ const AdminPage = () => {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {submissions.map((sub) => {
-                  const growthInfo = getGrowthLevel(sub.overall_score);
+                  const journeyInfo = getJourneyLevel(sub.overall_score);
                   return (
                     <tr key={sub.id} className="hover:bg-slate-50">
                       <td className="px-6 py-4">
@@ -370,8 +370,8 @@ const AdminPage = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${growthInfo.color}`}>
-                          {growthInfo.level}
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${journeyInfo.color}`}>
+                          {journeyInfo.level}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">

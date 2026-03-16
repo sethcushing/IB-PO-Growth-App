@@ -69,7 +69,7 @@ const Layout = ({ children }) => {
             <div className="w-9 h-9 bg-gradient-to-br from-lime-400 to-lime-600 rounded-lg flex items-center justify-center shadow-md">
               <TrendingUp className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-lg text-slate-900">PO Growth</span>
+            <span className="font-bold text-lg text-slate-900">PO Journey Assessment</span>
           </div>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -98,7 +98,7 @@ const Layout = ({ children }) => {
                 <TrendingUp className="w-6 h-6 text-white" />
               </div>
               <div>
-                <span className="font-bold text-lg text-slate-900">PO Growth</span>
+                <span className="font-bold text-lg text-slate-900">PO Journey Assessment</span>
                 <p className="text-xs text-slate-500">Development Platform</p>
               </div>
             </div>

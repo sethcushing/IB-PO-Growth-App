@@ -127,7 +127,7 @@ const AssessmentPage = () => {
       const data = await res.json();
       setResults(data);
       setIsSubmitted(true);
-      toast.success('Assessment submitted successfully!');
+      toast.success('Questionnaire submitted successfully!');
     } catch (err) {
       console.error('Error submitting:', err);
       toast.error('Failed to submit assessment');
@@ -136,7 +136,7 @@ const AssessmentPage = () => {
     }
   };
 
-  const getGrowthLevel = (score) => {
+  const getJourneyLevel = (score) => {
     if (score >= 85) return { level: 'Elite', color: 'bg-lime-600 text-white' };
     if (score >= 65) return { level: 'Leading', color: 'bg-emerald-100 text-emerald-700' };
     if (score >= 45) return { level: 'Performing', color: 'bg-lime-100 text-lime-700' };
@@ -157,7 +157,7 @@ const AssessmentPage = () => {
 
   // Show results after submission
   if (isSubmitted && results) {
-    const growthInfo = getGrowthLevel(results.overall_score);
+    const journeyInfo = getJourneyLevel(results.overall_score);
     
     return (
       <div className="min-h-screen bg-slate-50">
@@ -168,7 +168,7 @@ const AssessmentPage = () => {
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-900">PO Growth Assessment</h1>
+              <h1 className="text-xl font-bold text-slate-900">PO Journey Questionnaire</h1>
               <p className="text-sm text-slate-500">Results for {participantName}</p>
             </div>
           </div>
@@ -177,13 +177,13 @@ const AssessmentPage = () => {
         <main className="max-w-4xl mx-auto p-6 space-y-8">
           {/* Overall Score */}
           <div className="bg-white border border-slate-200 rounded-xl p-8 text-center">
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">Your Growth Score</h2>
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">Your Journey Score</h2>
             <div className="text-6xl font-bold text-lime-600 mb-4">
               {results.overall_score?.toFixed(1)}
             </div>
-            <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-lg font-medium ${growthInfo.color}`}>
+            <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-lg font-medium ${journeyInfo.color}`}>
               <TrendingUp className="w-5 h-5" />
-              {growthInfo.level}
+              {journeyInfo.level}
             </span>
           </div>
 
@@ -211,7 +211,7 @@ const AssessmentPage = () => {
           {/* Coaching Recommendations */}
           {results.recommendations && results.recommendations.length > 0 && (
             <div className="bg-white border border-slate-200 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-slate-900 mb-4">Growth Recommendations</h3>
+              <h3 className="text-lg font-semibold text-slate-900 mb-4">Journey Recommendations</h3>
               <div className="space-y-4">
                 {results.recommendations.map((rec, idx) => (
                   <div key={idx} className="p-4 bg-lime-50 border border-lime-200 rounded-lg">
@@ -230,7 +230,7 @@ const AssessmentPage = () => {
               variant="outline"
               className="px-6"
             >
-              Take Another Assessment
+              Take Another Questionnaire
             </Button>
           </div>
         </main>
@@ -251,7 +251,7 @@ const AssessmentPage = () => {
               <ArrowLeft className="w-5 h-5 text-slate-600" />
             </button>
             <div>
-              <h1 className="text-xl font-bold text-slate-900">Self Assessment</h1>
+              <h1 className="text-xl font-bold text-slate-900">Self Questionnaire</h1>
               <p className="text-sm text-slate-500">{participantName}</p>
             </div>
           </div>
@@ -393,7 +393,7 @@ const AssessmentPage = () => {
             data-testid="submit-assessment-btn"
           >
             <Send className="w-4 h-4 mr-2" />
-            {submitting ? 'Submitting...' : 'Submit Assessment'}
+            {submitting ? 'Submitting...' : 'Submit Questionnaire'}
           </Button>
         </div>
 

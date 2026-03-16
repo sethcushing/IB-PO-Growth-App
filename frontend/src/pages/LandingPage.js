@@ -40,8 +40,8 @@ const LandingPage = () => {
               <TrendingUp className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">PO Growth</h1>
-              <p className="text-slate-400 text-sm">Assessment Tool</p>
+              <h1 className="text-2xl font-bold text-white">PO Journey</h1>
+              <p className="text-slate-400 text-sm">Questionnaire Tool</p>
             </div>
           </div>
         </div>
@@ -53,7 +53,7 @@ const LandingPage = () => {
               <span className="text-lime-400">Product Owner Skills</span>
             </h2>
             <p className="text-slate-300 text-lg leading-relaxed">
-              A quick self-assessment to help you identify strengths and growth opportunities across key PO competencies.
+              A quick questionnaire to help you identify strengths and journey opportunities across key PO competencies.
             </p>
           </div>
 
@@ -85,13 +85,13 @@ const LandingPage = () => {
             </div>
             <div>
               <div className="text-3xl font-bold text-white">5</div>
-              <div className="text-slate-400 text-sm">Growth Levels</div>
+              <div className="text-slate-400 text-sm">Journey Levels</div>
             </div>
           </div>
         </div>
 
         <div className="relative z-10 text-slate-500 text-sm">
-          © 2025 PO Growth Assessment Tool
+          © 2025 PO Journey Questionnaire Tool
         </div>
       </div>
 
@@ -103,15 +103,15 @@ const LandingPage = () => {
             <div className="w-10 h-10 bg-gradient-to-br from-lime-400 to-lime-600 rounded-xl flex items-center justify-center">
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
-            <span className="text-xl font-bold text-slate-900">PO Growth</span>
+            <span className="text-xl font-bold text-slate-900">PO Journey</span>
           </div>
 
           <div className="text-center lg:text-left">
             <h2 className="text-3xl font-bold text-slate-900 mb-2">
-              Start Your Assessment
+              Start Your Questionnaire
             </h2>
             <p className="text-slate-600">
-              Enter your name below to begin the self-assessment
+              Enter your name below to begin the questionnaire
             </p>
           </div>
 
@@ -143,7 +143,7 @@ const LandingPage = () => {
               className="w-full h-12 bg-lime-600 hover:bg-lime-700 text-white text-lg font-medium"
               data-testid="start-assessment-btn"
             >
-              Start Assessment
+              Start Questionnaire
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </div>
@@ -152,18 +152,18 @@ const LandingPage = () => {
           <div className="grid grid-cols-2 gap-4 pt-4">
             <div className="p-4 bg-white border border-slate-200 rounded-xl">
               <Users className="w-6 h-6 text-lime-600 mb-2" />
-              <div className="text-sm font-medium text-slate-900">Self Assessment</div>
+              <div className="text-sm font-medium text-slate-900">Self Questionnaire</div>
               <div className="text-xs text-slate-500">Rate yourself honestly</div>
             </div>
             <div className="p-4 bg-white border border-slate-200 rounded-xl">
               <BarChart3 className="w-6 h-6 text-lime-600 mb-2" />
               <div className="text-sm font-medium text-slate-900">Get Insights</div>
-              <div className="text-xs text-slate-500">See your growth areas</div>
+              <div className="text-xs text-slate-500">See your journey areas</div>
             </div>
           </div>
 
           <p className="text-center text-sm text-slate-500">
-            Your responses will be saved to help track growth over time
+            Your responses will be saved to help track journey progress over time
           </p>
         </div>
       </div>

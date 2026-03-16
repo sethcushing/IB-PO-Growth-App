@@ -19,7 +19,7 @@ load_dotenv(ROOT_DIR / '.env')
 
 # MongoDB connection
 mongo_url = os.environ.get('MONGO_URL', '')
-db_name = os.environ.get('DB_NAME', 'po_growth_assessment')
+db_name = os.environ.get('DB_NAME', 'po_journey_assessment')
 
 if not mongo_url:
     print("WARNING: MONGO_URL not set. Please set the MONGO_URL environment variable.")
@@ -1248,7 +1248,7 @@ async def submit_open_assessment(submission: OpenAssessmentSubmission):
         "Strategy": "Focus on articulating a clearer product vision. Practice connecting daily work to measurable outcomes.",
         "Customer": "Increase direct customer engagement. Set up regular user interviews to validate assumptions.",
         "Backlog": "Implement a consistent prioritization framework. Regular backlog grooming will improve clarity.",
-        "Delivery": "Strengthen collaboration with engineering and design. Participate more actively in technical discussions.",
+        "Delivery": "Strengthen collaboration with development and design. Participate more actively in technical discussions.",
         "Stakeholder Management": "Map your stakeholders and establish regular communication cadences.",
         "Execution": "Focus on commitment reliability. Break work into smaller increments for better predictability.",
         "Data": "Define success metrics upfront for new features. Build a habit of reviewing post-launch performance.",
@@ -1401,7 +1401,7 @@ async def seed_demo_data():
             ("Our backlog is focused and doesn't have a bunch of outdated or irrelevant items cluttering it up.", "They keep the backlog clean and focused.", "They maintain excellent backlog hygiene.")
         ],
         "Delivery": [
-            ("I work closely with engineering and design to shape solutions together, not just hand off requirements.", "They collaborate well with the delivery team rather than just handing things over.", "They demonstrate strong partnership with engineering and design."),
+            ("I work closely with development and design to shape solutions together, not just hand off requirements.", "They collaborate well with the delivery team rather than just handing things over.", "They demonstrate strong partnership with development and design."),
             ("I help manage scope when things get complicated and watch out for delivery risks.", "They help manage scope and flag risks before they become problems.", "They proactively mitigate delivery risks.")
         ],
         "Stakeholder Management": [
@@ -1429,7 +1429,7 @@ async def seed_demo_data():
         "Strategy": "Think about how well you communicate direction and connect work to meaningful results. Do people understand where you're headed and why?",
         "Customer": "Consider how often you engage with actual users and whether you validate assumptions before committing to solutions.",
         "Backlog": "Reflect on the clarity and organization of your backlog. Is it easy for the team to understand what's important and why?",
-        "Delivery": "Think about your collaboration with engineering, design, and other teams. Are you a true partner in delivery?",
+        "Delivery": "Think about your collaboration with development, design, and other teams. Are you a true partner in delivery?",
         "Stakeholder Management": "Consider how you build relationships and handle competing interests. Do stakeholders trust you?",
         "Execution": "Reflect on your track record of delivering on commitments and helping the team stay focused.",
         "Data": "Think about how you use data to inform decisions and measure success.",
@@ -1572,7 +1572,7 @@ async def seed_demo_data():
     
     # Business Partners (8 total)
     bp_names = [
-        ("Lisa Wang", "Engineering"),
+        ("Lisa Wang", "Development"),
         ("Mark Johnson", "Design"),
         ("Sarah Miller", "Data"),
         ("Tom Anderson", "Operations"),
