@@ -28,7 +28,7 @@ const AdminPage = () => {
 
   const handleLogin = () => {
     // Simple password check - in production, use proper auth
-    if (password === 'admin_password_123!') {
+    if (password === 'InfoBlox2026!') {
       setIsAuthenticated(true);
       fetchData();
     } else {
