@@ -19,7 +19,7 @@ load_dotenv(ROOT_DIR / '.env')
 
 # MongoDB connection
 mongo_url = os.environ.get('MONGO_URL', '')
-db_name = os.environ.get('DB_NAME', 'po_journey_assessment')
+db_name = os.environ.get('DB_NAME', 'po_growth_assessment')
 
 if not mongo_url:
     print("WARNING: MONGO_URL not set. Please set the MONGO_URL environment variable.")
